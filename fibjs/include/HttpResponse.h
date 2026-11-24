@@ -144,6 +144,9 @@ public:
 
     exlib::string prepareHeaders();
 
+    // RFC 9110 8.6: status codes that never carry a Content-Length header.
+    bool allows_content_length();
+
     result_t readHeader(Stream_base* stm, AsyncHandle ac);
     result_t readBody(AsyncHandle ac);
 

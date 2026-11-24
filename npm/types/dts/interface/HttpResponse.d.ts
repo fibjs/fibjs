@@ -16,8 +16,9 @@
  *    response; nothing is sent while the handler runs and the whole reply is serialized when
  *    the handler returns (or when send/sendTo is called explicitly), at which point
  *    headersSent becomes true. The default is a 200 with an empty body; a plain 200 without
- *    Last-Modified or Cache-Control also receives Cache-Control: no-cache, no-store and
- *    Expires: -1 from the http handler.
+ *    Last-Modified, Cache-Control or Expires also receives Cache-Control: no-cache, no-store
+ *    and Expires: Thu, 01 Jan 1970 00:00:00 GMT from the http handler. A handler-set Expires
+ *    (or Cache-Control) suppresses both defaults.
  *  - **Status**: statusCode and status are the same numeric value, statusMessage and
  *    statusText are the same reason phrase. An empty statusMessage lets the writer use the
  *    standard phrase of the code (200 becomes "200 OK"); a custom one is written verbatim

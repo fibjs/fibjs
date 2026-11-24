@@ -649,7 +649,9 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
                 || qisdigit(c_str[12]))
                 return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError).with_code("ERR_INVALID_STATE").with_message("HttpResponse: bad protocol: " + m_strLine);
 
-            m_pThis->set_statusCode((c_str[9] - '0') * 100 + (c_str[10] - '0') * 10 + (c_str[11] - '0'));
+            int32_t status = (c_str[9] - '0') * 100 + (c_str[10] - '0') * 10 + (c_str[11] - '0');
+
+            m_pThis->set_statusCode(status);
             m_pThis->set_statusMessage(c_str[12] == ' ' ? c_str + 13 : c_str + 12);
 
             m_strLine.resize(8);
@@ -657,10 +659,24 @@ result_t HttpResponse::readFrom(Stream_base* stm, AsyncHandle ac, bool headerOnl
             if (hr.failed())
                 return hr;
 
+            // RFC 9110 15.2 / RFC 9112 6.1: a 1xx (other than 101, which ends
+            // HTTP framing) is an interim response. Its header block is read and
+            // discarded, then the real response is read from the same stream.
+            if (status >= 100 && status < 200 && status != 101)
+                return m_pThis->m_message->readHeader(m_stm, next(interim_done));
+
             if (m_headerOnly)
                 return m_pThis->m_message->readHeader(m_stm, next());
 
             return m_pThis->m_message->readFrom(m_stm, next());
+        }
+
+        ON_STATE(asyncReadFrom, interim_done)
+        {
+            // Drop everything from the interim response before reading the
+            // final one, so its headers and status do not leak through.
+            m_pThis->clear();
+            return next(begin);
         }
 
     public:
@@ -698,10 +714,24 @@ result_t HttpResponse::sendTo(Stream_base* stm, Options_Message_sendTo_options* 
 
     exlib::string strCommand = prepareHeaders();
 
-    if (header_only)
-        return m_message->sendHeader(stm, strCommand, options ? options->content_length.value_or(true) : true, std::move(ac));
+    // RFC 9110 8.6: 1xx and 204 never carry Content-Length, and a 304 carries
+    // the header only if it would have been sent for the equivalent 200. This
+    // server never knows that length, so it omits it as well. The explicit
+    // header_only option can still ask to drop it for ordinary responses.
+    bool content_length = allows_content_length();
 
-    return m_message->send(stm, strCommand, std::move(ac));
+    if (header_only)
+        return m_message->sendHeader(stm, strCommand,
+            content_length && (options ? options->content_length.value_or(true) : true),
+            std::move(ac));
+
+    return m_message->send(stm, strCommand, std::move(ac), content_length);
+}
+
+bool HttpResponse::allows_content_length()
+{
+    return !(m_statusCode >= 100 && m_statusCode < 200)
+        && m_statusCode != 204 && m_statusCode != 304;
 }
 
 result_t HttpResponse::readFrom(Stream_base* stm, Options_Message_readFrom_options* options, AsyncHandle ac)
@@ -745,6 +775,13 @@ result_t HttpResponse::get_statusMessage(exlib::string& retVal)
 
 result_t HttpResponse::set_statusMessage(exlib::string newVal)
 {
+    for (size_t i = 0; i < newVal.length(); i++)
+        if (newVal[i] == '\r' || newVal[i] == '\n' || newVal[i] == '\0')
+            return result_t::make(CALL_E_INVALID_DATA)
+                .with_type_name(errtype::kTypeError)
+                .with_code("ERR_INVALID_HEADER_VALUE")
+                .with_message("HttpResponse: invalid status message.");
+
     m_statusMessage = newVal;
     return result_t();
 }
@@ -950,7 +987,7 @@ result_t HttpResponse::sendHeader(Stream_base* stm, bool content_length, AsyncHa
         return result_t::nosync();
 
     exlib::string strCommand = prepareHeaders();
-    return m_message->sendHeader(stm, strCommand, content_length, std::move(ac));
+    return m_message->sendHeader(stm, strCommand, content_length && allows_content_length(), std::move(ac));
 }
 
 result_t HttpResponse::clone(obj_ptr<Message_base>& retVal)
