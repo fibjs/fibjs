@@ -10,44 +10,142 @@
 #include "RangeStream.h"
 #include "Buffer.h"
 #include "ifs/SeekableStream.h"
+#include <limits>
 
 namespace fibjs {
 
 // follow HTTP 206 Range Request RFC, but should cut off `bytes=` token firstly
 // @see https://tools.ietf.org/html/rfc7233
+static bool parse_range_pos(const exlib::string& s, int64_t& v)
+{
+    const int64_t max = std::numeric_limits<int64_t>::max();
+
+    if (s.empty())
+        return false;
+
+    v = 0;
+
+    for (size_t i = 0; i < s.length(); i++) {
+        char c = s[i];
+        if (c < '0' || c > '9')
+            return false;
+
+        int32_t d = c - '0';
+        if (v > (max - d) / 10)
+            return false;
+
+        v = v * 10 + d;
+    }
+
+    return true;
+}
+
+range_parse_result parse_range(const exlib::string& range, int64_t size,
+    bool clamp_end, int64_t& begin, int64_t& end)
+{
+    size_t b = 0;
+    size_t e = range.length();
+
+    if (size < 0)
+        size = 0;
+
+    while (b < e && (range[b] == ' ' || range[b] == '\t'))
+        b++;
+    while (e > b && (range[e - 1] == ' ' || range[e - 1] == '\t'))
+        e--;
+
+    exlib::string spec = range.substr(b, e - b);
+
+    if (spec.find(',') != exlib::string::npos)
+        return range_parse_result::unsupported;
+
+    size_t dash = spec.find('-');
+    if (dash == exlib::string::npos)
+        return range_parse_result::invalid;
+    if (spec.find('-', dash + 1) != exlib::string::npos)
+        return range_parse_result::invalid;
+
+    exlib::string first = spec.substr(0, dash);
+    exlib::string last = spec.substr(dash + 1);
+
+    if (first.empty() && last.empty())
+        return range_parse_result::invalid;
+
+    if (first.empty()) {
+        int64_t suffix;
+
+        if (!parse_range_pos(last, suffix))
+            return range_parse_result::invalid;
+        if (suffix == 0 || size == 0)
+            return range_parse_result::unsatisfiable;
+
+        if (suffix >= size)
+            begin = 0;
+        else
+            begin = size - suffix;
+        end = size;
+
+        return range_parse_result::ok;
+    }
+
+    int64_t first_pos;
+
+    if (!parse_range_pos(first, first_pos))
+        return range_parse_result::invalid;
+
+    if (first_pos >= size)
+        return range_parse_result::unsatisfiable;
+
+    if (last.empty()) {
+        begin = first_pos;
+        end = size;
+        return range_parse_result::ok;
+    }
+
+    int64_t last_pos;
+
+    if (!parse_range_pos(last, last_pos))
+        return range_parse_result::invalid;
+    if (last_pos < first_pos)
+        return range_parse_result::unsatisfiable;
+
+    begin = first_pos;
+
+    if (last_pos >= size) {
+        if (!clamp_end)
+            return range_parse_result::unsatisfiable;
+        end = size;
+    } else
+        end = last_pos + 1;
+
+    return range_parse_result::ok;
+}
+
 result_t _parseRange(exlib::string range, int64_t fsize, int64_t& bpos, int64_t& epos)
 {
-    int32_t p;
-    p = (int32_t)range.find(',', 0);
-    if (p >= 0)
+    int64_t begin, end;
+    range_parse_result r = parse_range(range, fsize, false, begin, end);
+
+    if (r == range_parse_result::ok) {
+        bpos = begin;
+        epos = end;
+        return result_t();
+    }
+
+    if (r == range_parse_result::unsupported)
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_RANGE").with_message("Parse Range-String Error, unexpected token ','!");
-    p = (int32_t)range.find('-', 0);
-    if (p < 0)
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_RANGE").with_message("Parse Range-String Error, expect next token '-'!");
 
-    exlib::string b = range.substr(0, p);
-    exlib::string e = range.substr(p + 1);
+    if (r == range_parse_result::invalid) {
+        if (range.find('-') == exlib::string::npos)
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_RANGE").with_message("Parse Range-String Error, expect next token '-'!");
 
-    if (b.empty() && e.empty())
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_RANGE").with_message("Parse Range-String Error, first-byte-pos required!");
-    if (!b.empty() && e.empty()) {
-        bpos = atoll(b.c_str());
-        epos = fsize;
-    }
-    if (b.empty() && !e.empty()) {
-        int64_t t = atoll(e.c_str());
-        bpos = fsize - t;
-        epos = fsize;
-    }
-    if (!b.empty() && !e.empty()) {
-        bpos = atoll(b.c_str());
-        epos = atoll(e.c_str()) + 1;
+        if (range == "-")
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_RANGE").with_message("Parse Range-String Error, first-byte-pos required!");
+
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_RANGE").with_message("Parse Range-String Error, invalid byte-range-spec '" + range + "'!");
     }
 
-    if (bpos < 0 || bpos > epos || epos > fsize)
-        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_RANGE").with_message("Parse Range-String Error, invalid range string '" + range + "' which is out of file size range!");
-
-    return result_t();
+    return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_RANGE").with_message("Parse Range-String Error, invalid range string '" + range + "' which is out of file size range!");
 }
 
 result_t RangeStream_base::_new(SeekableStream_base* stm, exlib::string range, obj_ptr<RangeStream_base>& retVal, v8::Local<v8::Object> This)

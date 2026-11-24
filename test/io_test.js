@@ -177,6 +177,24 @@ describe('io', () => {
                     new io.RangeStream(file, ``);
                 }, `Parse Range-String Error, expect next token '-'!`)
             });
+
+            it('NOT ALLOWED: non-numeric range positions', () => {
+                assert.throws(() => {
+                    new io.RangeStream(file, 'abc-def');
+                }, { name: 'TypeError', code: 'ERR_INVALID_RANGE', number: 20011 });
+            });
+
+            it('NOT ALLOWED: zero suffix length', () => {
+                assert.throws(() => {
+                    new io.RangeStream(file, '-0');
+                }, { name: 'TypeError', code: 'ERR_INVALID_RANGE', number: 20011 });
+            });
+
+            it('NOT ALLOWED: reversed range', () => {
+                assert.throws(() => {
+                    new io.RangeStream(file, '10-2');
+                }, { name: 'TypeError', code: 'ERR_INVALID_RANGE', number: 20011 });
+            });
         });
 
         describe('valid constructor params', () => {
@@ -191,15 +209,21 @@ describe('io', () => {
                 assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
             });
 
-            it("http 206 range string(but weired for RangeStream)", () => {
-                var stm = new io.RangeStream(fs.openFile(filePath), 'bytes=2-10');
+            it("rejects the bytes= unit", () => {
+                // http.fileHandler strips the unit before constructing the
+                // stream; the RangeStream string form accepts only the spec.
+                assert.throws(() => {
+                    new io.RangeStream(fs.openFile(filePath), 'bytes=2-10');
+                }, { name: 'TypeError', code: 'ERR_INVALID_RANGE', number: 20011 });
+            });
+
+            it("suffix longer than the stream resolves to the whole stream", () => {
+                var stm = new io.RangeStream(fs.openFile(filePath), `-${fsize + 10}`);
 
                 assert.equal(stm.begin, 0);
-                assert.equal(stm.end, 11);
-
-                file.seek(stm.begin, fs.SEEK_SET);
-                stm.rewind();
-                assert.equal(0, file.read(stm.end - stm.begin).compare(stm.readAll()));
+                assert.equal(stm.end, fsize);
+                assert.equal(stm.size(), fsize);
+                stm.close();
             });
 
             it("accept numberic begin_pos, end_pos", () => {

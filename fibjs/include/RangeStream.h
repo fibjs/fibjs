@@ -16,6 +16,20 @@
 
 namespace fibjs {
 
+enum class range_parse_result {
+    ok,
+    invalid,
+    unsupported,
+    unsatisfiable
+};
+
+// Parses one byte-range-spec, i.e. the part after the "bytes=" unit. `begin` is
+// inclusive and `end` is exclusive. With clamp_end a last-byte position past the
+// stream size is clamped to the end (HTTP server semantics); otherwise it is
+// reported as unsatisfiable.
+range_parse_result parse_range(const exlib::string& range, int64_t size,
+    bool clamp_end, int64_t& begin, int64_t& end);
+
 class RangeStream : public AsyncStream<RangeStream_base> {
 public:
     RangeStream(SeekableStream_base* stream, int64_t begin, int64_t end);
