@@ -23,6 +23,10 @@ const {
 
 var base_port = coroutine.vmid * 10000;
 
+// Compression needs at least 1 KB of body, so the gzip tests use one shared
+// body large enough to be compressed.
+var gzip_body = "0123456789".repeat(205);
+
 var pk = crypto.generateKeyPair('rsa', {
     modulusLength: 2048
 });
@@ -162,16 +166,25 @@ describe("http", () => {
             assert.strictEqual(code(() => http.validateHeaderValue('a', '中文')), 'ERR_INVALID_CHAR');
         });
 
-        it("does not make the writing paths validate", () => {
-            // the decision this batch pins: the two functions are opt-in, so
-            // existing code that stores an odd header keeps working
+        it("validates HttpMessage header writing paths", () => {
+            // validateHeaderName / validateHeaderValue stay opt-in, but the
+            // message writers reject framing hazards so a user value cannot
+            // split the response.
             var req = new http.Request();
-            req.setHeader('bad name', 'v');
-            assert.strictEqual(req.getHeader('bad name'), 'v');
+            assert.throws(() => req.setHeader('bad name', 'v'),
+                { name: 'TypeError', code: 'ERR_INVALID_HEADER_NAME' });
+            assert.throws(() => req.setHeader('X-Test', 'a\r\nb'),
+                { name: 'TypeError', code: 'ERR_INVALID_HEADER_VALUE' });
+            assert.throws(() => req.appendHeader('X-Test', ['ok', 'a\nb']),
+                { name: 'TypeError', code: 'ERR_INVALID_HEADER_VALUE' });
 
+            // a standalone Headers collection still stores arbitrary keys;
+            // the message boundary validates when it is attached
             var headers = new Headers();
             headers.set('a b', 'c');
             assert.strictEqual(headers.get('a b'), 'c');
+            assert.throws(() => req.setHeader(headers),
+                { name: 'TypeError', code: 'ERR_INVALID_HEADER_NAME' });
         });
     });
 
@@ -2384,6 +2397,29 @@ describe("http", () => {
             assert.equal(ms.read().toString(), 'HTTP/1.1 210 Unknown\r\nConnection: keep-alive\r\nContent-Length: 0\r\n\r\n');
         });
 
+        it("204 and 304 omit Content-Length", () => {
+            // RFC 9110 8.6: neither a 204 nor a 304 response carries a
+            // Content-Length header.
+            [204, 304].forEach((code) => {
+                var ms = new io.MemoryStream();
+                var rep = new http.Response();
+                rep.statusCode = code;
+                rep.sendTo(ms);
+                ms.rewind();
+
+                var raw = ms.read().toString();
+                assert.ok(raw.indexOf('Content-Length') < 0, code + ' must not send Content-Length');
+            });
+
+            // A 1xx response is bodyless as well.
+            var ms1 = new io.MemoryStream();
+            var rep1 = new http.Response();
+            rep1.statusCode = 100;
+            rep1.sendTo(ms1);
+            ms1.rewind();
+            assert.ok(ms1.read().toString().indexOf('Content-Length') < 0);
+        });
+
         it("statusMessage", () => {
             var ms = new io.MemoryStream();
 
@@ -2471,22 +2507,56 @@ describe("http", () => {
             hdr = new http.Handler((r) => {
                 if (r.value == '/throw')
                     throw new Error('throw test');
-                else if (r.value == '/not_found')
+                else if (r.value == '/throw_after_write') {
+                    r.response.setHeader('X-Leak', 'leaked');
+                    r.response.write('partial body');
+                    throw new Error('throw after write');
+                } else if (r.value == '/not_found')
                     r.response.statusCode = 404;
-                else if (r.value == '/remote_close') {
+                else if (r.value == '/expires_only') {
+                    r.response.setHeader('Expires', 'Wed, 21 Oct 2030 07:28:00 GMT');
+                    r.response.write('cached');
+                } else if (r.value == '/remote_close') {
                     st.step = 1;
                     st.wait(2);
                 } else if (r.value == '/gzip_test') {
                     r.response.appendHeader("Content-Type", "text/html");
-                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    r.response.write(gzip_body);
                 } else if (r.value == '/gzip_json') {
                     r.response.appendHeader("Content-Type", "application/json");
-                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    r.response.write(gzip_body);
+                } else if (r.value == '/gzip_charset') {
+                    r.response.appendHeader("Content-Type", "text/html; charset=UTF-8");
+                    r.response.write(gzip_body);
+                } else if (r.value == '/gzip_no_transform') {
+                    r.response.appendHeader("Content-Type", "text/html");
+                    r.response.appendHeader("Cache-Control", "no-transform");
+                    r.response.write(gzip_body);
                 } else if (r.value == '/gzip_small') {
                     r.response.appendHeader("Content-Type", "text/html");
-                    r.response.write("01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567");
+                    r.response.write("0123456789".repeat(102));
+                } else if (r.value == '/gzip_1023') {
+                    r.response.appendHeader("Content-Type", "text/html");
+                    r.response.write("a".repeat(1023));
+                } else if (r.value == '/gzip_1024') {
+                    r.response.appendHeader("Content-Type", "text/html");
+                    r.response.write("a".repeat(1024));
+                } else if (r.value == '/gzip_1m') {
+                    r.response.appendHeader("Content-Type", "text/html");
+                    r.response.write("a".repeat(1024 * 1024));
+                } else if (r.value == '/gzip_1m1') {
+                    r.response.appendHeader("Content-Type", "text/html");
+                    r.response.write("a".repeat(1024 * 1024 + 1));
+                } else if (r.value == '/gzip_206') {
+                    r.response.statusCode = 206;
+                    r.response.appendHeader("Content-Range", "bytes 0-2047/4096");
+                    r.response.appendHeader("Content-Type", "text/html");
+                    r.response.write(gzip_body);
+                } else if (r.value == '/gzip_304') {
+                    r.response.statusCode = 304;
+                    r.response.appendHeader("Content-Type", "text/html");
                 } else if (r.value == '/gzip_bin') {
-                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    r.response.write(gzip_body);
                 } else if (r.value == '/custum_send') {
                     r.response.sendTo(r.stream);
                 }
@@ -2528,6 +2598,65 @@ describe("http", () => {
             c.write("GET / HTTP/1.0\r\n\r\n");
             var req = get_response();
             assert.equal(req.statusCode, 200);
+            assert.ok(req.firstHeader('Date'));
+            assert.ok(!isNaN(new Date(req.firstHeader('Date')).getTime()));
+            assert.equal(req.firstHeader('Cache-Control'), 'no-cache, no-store');
+            assert.ok(!isNaN(new Date(req.firstHeader('Expires')).getTime()));
+        });
+
+        it("a handler-set Expires suppresses the cache defaults", () => {
+            c.write("GET /expires_only HTTP/1.0\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.isNull(req.firstHeader('Cache-Control'));
+            assert.equal(req.firstHeader('Expires'), 'Wed, 21 Oct 2030 07:28:00 GMT');
+        });
+
+        it("HEAD keeps the connection open", () => {
+            c.write("HEAD / HTTP/1.1\r\nHost: example.com\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.ok(req.firstHeader('Date'));
+
+            // the same connection still serves the next request
+            c.write("GET / HTTP/1.1\r\nHost: example.com\r\nConnection: close\r\n\r\n");
+            req = get_response();
+            assert.equal(req.statusCode, 200);
+        });
+
+        it("HEAD carries the same compression headers as GET", () => {
+            var url = 'http://127.0.0.1:' + (8881 + base_port) + '/gzip_test';
+            var headers = { 'Accept-Encoding': 'gzip' };
+
+            var head = http.requestSync('HEAD', url, {
+                headers: headers,
+                enableEncoding: false
+            });
+            assert.equal(head.statusCode, 200);
+            assert.equal(head.firstHeader('Content-Encoding'), 'gzip');
+            assert.equal(head.length, 0);
+
+            // keep the encoded body so the header is observable
+            var hc = new http.Client();
+            hc.enableEncoding = false;
+            var get = hc.getSync(url, { headers: headers });
+            assert.equal(get.statusCode, 200);
+            assert.equal(get.firstHeader('Content-Encoding'), 'gzip');
+            assert.ok(get.text().length > 0);
+        });
+
+        it("gzip ignores Content-Type parameters", () => {
+            c.write("GET /gzip_charset HTTP/1.0\r\nAccept-Encoding: gzip\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), 'gzip');
+        });
+
+        it("gzip honors no-transform", () => {
+            c.write("GET /gzip_no_transform HTTP/1.0\r\nAccept-Encoding: gzip\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), null);
         });
 
         it("gzip request", () => {
@@ -2535,6 +2664,71 @@ describe("http", () => {
             var req = get_response();
             assert.equal(req.statusCode, 200);
             assert.equal(req.firstHeader('Content-Encoding'), 'gzip');
+            assert.ok(/accept-encoding/i.test(req.firstHeader('Vary')));
+        });
+
+        it("gzip vary without Accept-Encoding", () => {
+            c.write("GET /gzip_test HTTP/1.0\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), null);
+            assert.ok(/accept-encoding/i.test(req.firstHeader('Vary')));
+        });
+
+        it("gzip 1023 bytes is not compressed", () => {
+            c.write("GET /gzip_1023 HTTP/1.0\r\nAccept-Encoding: gzip\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), null);
+        });
+
+        it("gzip 1024 bytes is compressed", () => {
+            c.write("GET /gzip_1024 HTTP/1.0\r\nAccept-Encoding: gzip\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), 'gzip');
+        });
+
+        it("gzip 1 MiB is compressed", () => {
+            c.write("GET /gzip_1m HTTP/1.0\r\nAccept-Encoding: gzip\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), 'gzip');
+        });
+
+        it("gzip above 1 MiB is not compressed", () => {
+            c.write("GET /gzip_1m1 HTTP/1.0\r\nAccept-Encoding: gzip\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+            assert.equal(req.firstHeader('Content-Encoding'), null);
+        });
+
+        it("gzip skips 206", () => {
+            c.write("GET /gzip_206 HTTP/1.0\r\nAccept-Encoding: gzip\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 206);
+            assert.equal(req.firstHeader('Content-Encoding'), null);
+            assert.ok(/accept-encoding/i.test(req.firstHeader('Vary')));
+        });
+
+        it("304 keeps Vary Accept-Encoding", () => {
+            c.write("GET /gzip_304 HTTP/1.0\r\nAccept-Encoding: gzip\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 304);
+            assert.equal(req.firstHeader('Content-Encoding'), null);
+            assert.ok(/accept-encoding/i.test(req.firstHeader('Vary')));
+        });
+
+        it("gzip q=0 refuses every coding", () => {
+            c.write("GET /gzip_test HTTP/1.0\r\nAccept-Encoding: gzip;q=0, deflate;q=0\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.firstHeader('Content-Encoding'), null);
+        });
+
+        it("gzip wildcard falls back to deflate", () => {
+            c.write("GET /gzip_test HTTP/1.0\r\nAccept-Encoding: gzip;q=0, *;q=1\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.firstHeader('Content-Encoding'), 'deflate');
         });
 
         it("gzip json", () => {
@@ -2564,6 +2758,65 @@ describe("http", () => {
             assert.equal(req.statusCode, 400);
         });
 
+        it("header block within maxHeaderSize", () => {
+            c.write("GET / HTTP/1.0\r\nX-A: " + "a".repeat(4000)
+                + "\r\nX-B: " + "b".repeat(4000) + "\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+        });
+
+        it("header block over maxHeaderSize", () => {
+            // each line is below 8192, but the block is not: option A counts
+            // the whole header block, including CRLF terminators
+            c.write("GET / HTTP/1.0\r\nX-A: " + "a".repeat(4100)
+                + "\r\nX-B: " + "b".repeat(4100) + "\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 431);
+        });
+
+        it("HTTP/1.1 without Host is rejected", () => {
+            c.write("GET / HTTP/1.1\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 400);
+            assert.equal(req.keepAlive, false);
+        });
+
+        it("Expect: 100-continue sends the interim response", () => {
+            c.write("POST / HTTP/1.1\r\nHost: example.com\r\n" +
+                "Content-Length: 5\r\nExpect: 100-continue\r\nConnection: close\r\n\r\n");
+
+            assert.equal(bs.readLine(), 'HTTP/1.1 100 Continue');
+            assert.equal(bs.readLine(), '');
+
+            c.write("hello");
+            var req = get_response();
+            assert.equal(req.statusCode, 200);
+        });
+
+        it("invalid content-length rejected", () => {
+            c.write("POST / HTTP/1.0\r\nContent-Length: +5\r\n\r\nhello");
+            var req = get_response();
+            assert.equal(req.statusCode, 400);
+        });
+
+        it("overflowing content-length rejected", () => {
+            c.write("POST / HTTP/1.0\r\nContent-Length: 4294967296\r\n\r\nhello");
+            var req = get_response();
+            assert.equal(req.statusCode, 413);
+        });
+
+        it("content-length with trailing garbage rejected", () => {
+            c.write("POST / HTTP/1.0\r\nContent-Length: 5abc\r\n\r\nhello");
+            var req = get_response();
+            assert.equal(req.statusCode, 400);
+        });
+
+        it("duplicate content-length rejected", () => {
+            c.write("POST / HTTP/1.0\r\nContent-Length: 5\r\nContent-Length: 6\r\n\r\nhello!");
+            var req = get_response();
+            assert.equal(req.statusCode, 400);
+        });
+
         it("error 404", () => {
             c.write("GET /not_found HTTP/1.0\r\n\r\n");
             var req = get_response();
@@ -2574,6 +2827,67 @@ describe("http", () => {
             c.write("GET /throw HTTP/1.0\r\n\r\n");
             var req = get_response();
             assert.equal(req.statusCode, 500);
+        });
+
+        it("error after a partial write resets the response", () => {
+            c.write("GET /throw_after_write HTTP/1.0\r\n\r\n");
+            var req = get_response();
+            assert.equal(req.statusCode, 500);
+            assert.isNull(req.firstHeader('X-Leak'));
+            assert.equal(req.length, 0);
+        });
+
+        it("chunked body is rejected when maxBodySize is 0", () => {
+            var h = new http.Handler((r) => {
+                r.response.write('ok');
+            });
+            h.maxBodySize = 0;
+
+            var stm = new io.MemoryStream();
+            stm.write(Buffer.from('POST / HTTP/1.1\r\nHost: example.com\r\n'
+                + 'Transfer-Encoding: chunked\r\nConnection: close\r\n\r\n'
+                + '5\r\nhello\r\n0\r\n\r\n'));
+            stm.rewind();
+            h.invoke(stm);
+
+            stm.rewind();
+            var text = stm.readAll().toString();
+            assert.ok(text.indexOf(' 413 ') >= 0);
+        });
+
+        it("content-length body over maxBodySize is 413", () => {
+            var h = new http.Handler((r) => {
+                r.response.write('ok');
+            });
+            h.maxBodySize = 0;
+
+            var stm = new io.MemoryStream();
+            stm.write(Buffer.from('POST / HTTP/1.1\r\nHost: example.com\r\n'
+                + 'Content-Length: 1\r\nConnection: close\r\n\r\nx'));
+            stm.rewind();
+            h.invoke(stm);
+
+            stm.rewind();
+            var text = stm.readAll().toString();
+            assert.ok(text.indexOf(' 413 ') >= 0);
+        });
+
+        it("too many headers is 431", () => {
+            var h = new http.Handler((r) => {
+                r.response.write('ok');
+            });
+            h.maxHeadersCount = 2;
+
+            var stm = new io.MemoryStream();
+            stm.write(Buffer.from('GET / HTTP/1.1\r\nHost: example.com\r\n'
+                + 'A: 1\r\nB: 2\r\nC: 3\r\nConnection: close\r\n\r\n'));
+            stm.rewind();
+            h.invoke(stm);
+
+            stm.rewind();
+            var text = stm.readAll().toString();
+            assert.ok(text.indexOf(' 431 ') >= 0);
+            assert.ok(text.indexOf('Request Header Fields Too Large') >= 0);
         });
 
         it("remote close when response", () => {
@@ -2621,16 +2935,64 @@ describe("http", () => {
         });
 
         it("options request", () => {
-            c.write("OPTIONS / HTTP/1.1\r\norigin: localhost\r\n\r\n");
+            c.write("OPTIONS / HTTP/1.1\r\nHost: localhost\r\norigin: localhost\r\n\r\n");
             var req = get_response();
             assert.equal(req.statusCode, 200);
             assert.equal(req.firstHeader('Access-Control-Allow-Origin'), 'localhost');
+            assert.isNull(req.firstHeader('Access-Control-Allow-Credentials'));
+            assert.equal(req.firstHeader('Access-Control-Allow-Methods'), '*');
+            assert.ok(/origin/i.test(req.firstHeader('Vary')));
             assert.isNull(req.firstHeader('Cache-Control'));
 
-            c.write("GET / HTTP/1.1\r\norigin: localhost\r\n\r\n");
+            c.write("GET / HTTP/1.1\r\nHost: localhost\r\norigin: localhost\r\n\r\n");
             var req = get_response();
             assert.equal(req.statusCode, 200);
             assert.equal(req.firstHeader('Cache-Control'), 'no-cache, no-store');
+        });
+
+        it("CORS allowlist, credentials and preflight method echo", () => {
+            var server = new http.Server(0, (req) => {
+                req.response.write('cors body');
+            });
+            server.enableCrossOrigin('X-Token', {
+                origins: ['http://allowed.test'],
+                credentials: true
+            });
+            server.start();
+
+            try {
+                var url = 'http://127.0.0.1:' + server.socket.localPort + '/';
+
+                var res = http.requestSync('OPTIONS', url, {
+                    headers: {
+                        Origin: 'http://allowed.test',
+                        'Access-Control-Request-Method': 'PUT'
+                    }
+                });
+                assert.equal(res.statusCode, 200);
+                assert.equal(res.firstHeader('Access-Control-Allow-Origin'), 'http://allowed.test');
+                assert.equal(res.firstHeader('Access-Control-Allow-Credentials'), 'true');
+                assert.equal(res.firstHeader('Access-Control-Allow-Methods'), 'PUT');
+                assert.equal(res.firstHeader('Access-Control-Allow-Headers'), 'X-Token');
+                assert.ok(/origin/i.test(res.firstHeader('Vary')));
+
+                res = http.getSync(url, {
+                    headers: { Origin: 'http://allowed.test' }
+                });
+                assert.equal(res.statusCode, 200);
+                assert.equal(res.text(), 'cors body');
+                assert.equal(res.firstHeader('Access-Control-Allow-Origin'), 'http://allowed.test');
+
+                res = http.getSync(url, {
+                    headers: { Origin: 'http://evil.test' }
+                });
+                assert.equal(res.statusCode, 200);
+                assert.equal(res.text(), 'cors body');
+                assert.isNull(res.firstHeader('Access-Control-Allow-Origin'));
+                assert.isNull(res.firstHeader('Access-Control-Allow-Credentials'));
+            } finally {
+                server.stop();
+            }
         });
 
         it("custom send", () => {
@@ -2714,6 +3076,35 @@ describe("http", () => {
             rep.clear();
         });
 
+        it("not modified when If-Modified-Since drops sub-second precision", () => {
+            // Last-Modified is emitted in whole seconds while the on-disk mtime
+            // keeps milliseconds, so a client reflecting Last-Modified back must
+            // still be answered with 304.
+            var mtime = fs.stat(filePath).mtime;
+            var truncated = new Date(Math.floor(mtime.getTime() / 1000) * 1000);
+
+            assert.equal(304, hfh_test(url, {
+                'If-Modified-Since': truncated.toGMTString()
+            }).statusCode);
+
+            // Also 304 when the mtime has a non-zero millisecond part and the
+            // client sends the whole-second form of it.
+            fs.utimes(filePath, new Date(mtime.getTime()), new Date(mtime.getTime()));
+            assert.equal(304, hfh_test(url, {
+                'If-Modified-Since': truncated.toGMTString()
+            }).statusCode);
+            rep.clear();
+        });
+
+        it("not modified when If-Modified-Since is in the future", () => {
+            // RFC 9110 13.1.3: a date later than the current modification time
+            // means the representation has not been modified.
+            assert.equal(304, hfh_test(url, {
+                'If-Modified-Since': new Date(Date.now() + 86400000).toGMTString()
+            }).statusCode);
+            rep.clear();
+        });
+
         it("index.html", () => {
             var rep = hfh_test("/");
             assert.equal(200, rep.statusCode);
@@ -2765,6 +3156,28 @@ describe("http", () => {
             assert.equal(404, rep.statusCode);
         });
 
+        it("directory without trailing slash redirects", () => {
+            var rep = hfh_test("http_autoindex/test_dir");
+            assert.equal(301, rep.statusCode);
+            assert.equal("/http_autoindex/test_dir/", rep.firstHeader('Location'));
+        });
+
+        it("autoindex escapes names and links", () => {
+            var name = '<x & "y">.txt';
+            var file = path.join(baseFolder, 'http_autoindex', name);
+            fs.writeFile(file, 'x');
+
+            try {
+                var rep = hfh_test("http_autoindex/");
+                var data = rep.text();
+                assert.equal(false, data.indexOf(name) >= 0);
+                assert.ok(data.indexOf('&lt;x &amp; &quot;y&quot;&gt;.txt') >= 0);
+                assert.ok(data.indexOf('%3Cx%20%26%20%22y%22%3E.txt') >= 0);
+            } finally {
+                try { fs.unlink(file); } catch (e) { }
+            }
+        });
+
         describe("206 Range", () => {
             const fakePath = generateFakeMp4('fake_http_206.mp4').target;
             var mp4File = fs.openFile(fakePath);
@@ -2783,16 +3196,74 @@ describe("http", () => {
                 });
             });
 
-            it("valid Range header, but outside file size", () => {
-                var rep = hfh_test("http_files/range_test/fake_http_206.mp4", {
-                    "Range": `bytes=0-${Number(mp4File.size())}`
-                });
-                assert.equal(416, rep.statusCode);
+            it("range end past file size is clamped", () => {
+                const size = Number(mp4File.size());
 
+                [`bytes=0-${size}`, `bytes=0-${size * 2}`].forEach((range) => {
+                    var rep = hfh_test("http_files/range_test/fake_http_206.mp4", {
+                        "Range": range
+                    });
+                    assert.equal(206, rep.statusCode);
+                    assert.equal(`bytes 0-${size - 1}/${size}`, rep.firstHeader('Content-Range'));
+                    rep.clear();
+                });
+            });
+
+            it("range start at file size is unsatisfiable", () => {
+                const size = Number(mp4File.size());
                 var rep = hfh_test("http_files/range_test/fake_http_206.mp4", {
-                    "Range": `bytes=0-${Number(mp4File.size()) * 2}`
+                    "Range": `bytes=${size}-`
                 });
                 assert.equal(416, rep.statusCode);
+                assert.equal(`bytes */${size}`, rep.firstHeader('Content-Range'));
+            });
+
+            it("invalid byte-range specs are rejected", () => {
+                ['bytes=abc-def', 'bytes=-0', 'bytes=10-2'].forEach((range) => {
+                    var rep = hfh_test("http_files/range_test/fake_http_206.mp4", {
+                        "Range": range
+                    });
+                    assert.equal(416, rep.statusCode);
+                    assert.equal(`bytes */${Number(mp4File.size())}`, rep.firstHeader('Content-Range'));
+                });
+            });
+
+            it("unsupported multi-range and unknown units are ignored", () => {
+                ['bytes=0-1,4-5', 'items=0-1'].forEach((range) => {
+                    var rep = hfh_test("http_files/range_test/fake_http_206.mp4", {
+                        "Range": range
+                    });
+                    assert.equal(200, rep.statusCode);
+                    assert.equal(null, rep.firstHeader('Content-Range'));
+                    assert.equal('bytes', rep.firstHeader('Accept-Ranges'));
+                    rep.clear();
+                });
+            });
+
+            it("advertises ETag and Accept-Ranges", () => {
+                var rep = hfh_test("http_autoindex/t.txt");
+                assert.equal(200, rep.statusCode);
+                assert.equal('bytes', rep.firstHeader('Accept-Ranges'));
+                assert.ok(/^W\/"/.test(rep.firstHeader('ETag')));
+                rep.clear();
+            });
+
+            it("answers If-None-Match with 304", () => {
+                var rep = hfh_test("http_autoindex/t.txt");
+                var etag = rep.firstHeader('ETag');
+                rep.clear();
+
+                var notModified = hfh_test("http_autoindex/t.txt", {
+                    'If-None-Match': etag
+                });
+                assert.equal(304, notModified.statusCode);
+                assert.equal(etag, notModified.firstHeader('ETag'));
+
+                var changed = hfh_test("http_autoindex/t.txt", {
+                    'If-None-Match': 'W/"other"'
+                });
+                assert.equal(200, changed.statusCode);
+                changed.clear();
             });
 
             describe("Partial Content from mp4", () => {
@@ -2801,7 +3272,7 @@ describe("http", () => {
                     'bytes=0-10',
                     'bytes=0-',
                     'bytes=-10',
-                    'bytes=-1-10',
+                    'bytes=-1',
                     'bytes=0-999999',
                     `bytes=0-${Number(mp4File.size()) - 1}`
                 ].forEach((range) => {
@@ -3314,7 +3785,7 @@ describe("http", () => {
                 } else if (r.address == "/gzip_test") {
                     r.response.appendHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
                     r.response.appendHeader("Content-Type", "text/html");
-                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    r.response.write(gzip_body);
                 } else if (r.address != "/gzip_test") {
                     r.response.appendHeader("set-cookie", [
                         "request=value; domain=127.0.0.1; path=/request",
@@ -4074,7 +4545,7 @@ describe("http", () => {
 
             it("gzip", () => {
                 assert.equal(http.getSync("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test").text(),
-                    "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    gzip_body);
 
                 assert.equal(cookie_for['_'], "root=value2");
                 http.getSync("http://127.0.0.1:" + (8882 + base_port) + "/gzip_test").body.close();
@@ -4090,7 +4561,7 @@ describe("http", () => {
                 var r1 = hc1.getSync(url);
                 assert.equal(r1.firstHeader("Content-Encoding"), null);
                 assert.equal(r1.text(),
-                    "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    gzip_body);
 
                 // enableEncoding=false: keep compressed body and Content-Encoding header
                 var hc2 = new http.Client();
@@ -4110,7 +4581,7 @@ describe("http", () => {
                 assert.equal(r1.firstHeader("Content-Encoding"), null);
                 assert.equal(r1.firstHeader("Content-Length"), null);
                 assert.equal(r1.text(),
-                    "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    gzip_body);
 
                 // user-set Accept-Encoding is not overwritten
                 var hc3 = new http.Client();
@@ -4118,7 +4589,7 @@ describe("http", () => {
                 var r3 = hc3.getSync(url, { headers: { "Accept-Encoding": "identity" } });
                 assert.equal(r3.firstHeader("Content-Encoding"), null);
                 assert.equal(r3.text(),
-                    "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    gzip_body);
             });
 
             it("keep-alive", () => {
@@ -4502,7 +4973,7 @@ describe("http", () => {
                         r.response.write(r.firstHeader("test_header"));
                 } else {
                     r.response.appendHeader("Content-Type", "text/html");
-                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    r.response.write(gzip_body);
                 }
             });
             svr.start();
@@ -4536,7 +5007,7 @@ describe("http", () => {
 
             it("gzip", () => {
                 assert.equal(hc.getSync("https://localhost:" + (8883 + base_port) + "/gzip_test").text(),
-                    "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    gzip_body);
             });
         });
 
@@ -4709,7 +5180,7 @@ describe("http", () => {
                 } else {
                     r.response.appendHeader("Content-Type", "text/html");
                     r.response.appendHeader("set-cookie", "gzip_test=value; domain=127.0.0.1; path=/gzip_test");
-                    r.response.write("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    r.response.write(gzip_body);
                 }
             });
             svr.start();
@@ -4801,7 +5272,7 @@ describe("http", () => {
 
             it("gzip", () => {
                 assert.equal(client.getSync("http://127.0.0.1:" + (8884 + base_port) + "/gzip_test").text(),
-                    "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
+                    gzip_body);
                 assert.equal(cookie_for['_'], "root=value2");
                 client.getSync("http://127.0.0.1:" + (8884 + base_port) + "/gzip_test");
                 assert.equal(cookie_for['_'], "root=value2; gzip_test=value");
@@ -7995,6 +8466,222 @@ describe("http", () => {
                 req.on('error', (err) => finish(() => { throw err; }));
                 req.end();
             });
+        });
+    });
+
+    describe('keep-alive by status code (RFC 9110/9112)', () => {
+        // A raw TCP server gives byte-exact control over the responses so the
+        // interim 1xx and connection-reuse cases can be reproduced.
+        var srv;
+        var kaPort = 0;
+
+        function startRaw(handler) {
+            srv = new net.TcpServer(kaPort, (c) => {
+                var bs = new io.BufferedStream(c);
+                bs.EOL = '\r\n';
+
+                function loop() {
+                    var line;
+                    try {
+                        line = bs.readLine(4096);
+                    } catch (e) {
+                        c.close();
+                        return;
+                    }
+                    if (!line) {
+                        c.close();
+                        return;
+                    }
+                    while (true) {
+                        var h;
+                        try {
+                            h = bs.readLine(4096);
+                        } catch (e) {
+                            break;
+                        }
+                        if (!h || h.length === 0)
+                            break;
+                    }
+
+                    var payload = handler(line.split(' ')[1], line);
+                    if (payload === null) {
+                        c.close();
+                        return;
+                    }
+                    c.write(payload);
+                    loop();
+                }
+
+                loop();
+                c.on('error', () => { });
+            });
+            srv.start();
+            kaPort = srv.socket.localPort;
+        }
+
+        afterEach(() => {
+            if (srv) {
+                srv.stop();
+                srv = null;
+            }
+        });
+
+        const ok = 'HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nok';
+
+        it('client skips a 100 Continue interim response', () => {
+            startRaw((path) => {
+                if (path === '/interim')
+                    return 'HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nfinal';
+                return ok;
+            });
+
+            var hc = new http.Client();
+            var r = hc.getSync('http://127.0.0.1:' + kaPort + '/interim');
+            assert.equal(r.statusCode, 200);
+            assert.equal(r.text(), 'final');
+        });
+
+        it('client skips a 103 Early Hints interim response', () => {
+            startRaw((path) => {
+                if (path === '/hints')
+                    return 'HTTP/1.1 103 Early Hints\r\nLink: </a.css>\r\n\r\nHTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nfinal';
+                return ok;
+            });
+
+            var hc = new http.Client();
+            var r = hc.getSync('http://127.0.0.1:' + kaPort + '/hints');
+            assert.equal(r.statusCode, 200);
+            assert.equal(r.text(), 'final');
+        });
+
+        it('client skips several interim responses in a row', () => {
+            startRaw((path) => {
+                if (path === '/multi')
+                    return 'HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 102 Processing\r\n\r\n'
+                        + 'HTTP/1.1 201 Created\r\nContent-Length: 4\r\n\r\nmade';
+                return ok;
+            });
+
+            var hc = new http.Client();
+            var r = hc.getSync('http://127.0.0.1:' + kaPort + '/multi');
+            assert.equal(r.statusCode, 201);
+            assert.equal(r.text(), 'made');
+        });
+
+        it('interim response does not desync a reused connection', () => {
+            startRaw((path) => {
+                if (path === '/interim')
+                    return 'HTTP/1.1 100 Continue\r\n\r\nHTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\nfinal';
+                if (path === '/second')
+                    return 'HTTP/1.1 200 OK\r\nContent-Length: 6\r\n\r\nsecond';
+                return ok;
+            });
+
+            var hc = new http.Client();
+            hc.keepAlive = true;
+
+            var r1 = hc.getSync('http://127.0.0.1:' + kaPort + '/interim');
+            assert.equal(r1.text(), 'final');
+
+            var r2 = hc.getSync('http://127.0.0.1:' + kaPort + '/second');
+            assert.equal(r2.statusCode, 200);
+            assert.equal(r2.text(), 'second');
+        });
+
+        it('response Connection: close set through a header closes the connection', () => {
+            var s = new http.Server(0, (req) => {
+                req.response.setHeader('Connection', 'close');
+                req.response.write('bye');
+            });
+            s.start();
+            var port = s.socket.localPort;
+            var c = new net.Socket();
+            var buf = '';
+            c.connect(port, '127.0.0.1');
+            c.on('data', (d) => { buf += d.toString(); });
+
+            c.write('GET / HTTP/1.1\r\nHost: x\r\n\r\nGET / HTTP/1.1\r\nHost: x\r\n\r\n');
+            coroutine.sleep(400);
+            c.close();
+            s.stop();
+
+            assert.equal((buf.match(/HTTP\/1\.1 200/g) || []).length, 1,
+                'a Connection: close response must end the connection');
+            assert.ok(/Connection: close/i.test(buf));
+        });
+
+        it('appendHeader Connection: close also closes the connection', () => {
+            var s = new http.Server(0, (req) => {
+                req.response.appendHeader('Connection', 'close');
+                req.response.write('bye');
+            });
+            s.start();
+            var port = s.socket.localPort;
+            var c = new net.Socket();
+            var buf = '';
+            c.connect(port, '127.0.0.1');
+            c.on('data', (d) => { buf += d.toString(); });
+
+            c.write('GET / HTTP/1.1\r\nHost: x\r\n\r\nGET / HTTP/1.1\r\nHost: x\r\n\r\n');
+            coroutine.sleep(400);
+            c.close();
+            s.stop();
+
+            assert.equal((buf.match(/HTTP\/1\.1 200/g) || []).length, 1);
+        });
+
+        it('101 ends HTTP framing on the server', () => {
+            var s = new http.Server(0, (req) => {
+                if (req.value === '/upgrade') {
+                    req.response.statusCode = 101;
+                    req.response.setHeader('Upgrade', 'websocket');
+                    req.response.upgrade = true;
+                } else
+                    req.response.write('ok');
+            });
+            s.start();
+            var port = s.socket.localPort;
+            var c = new net.Socket();
+            var buf = '';
+            c.connect(port, '127.0.0.1');
+            c.on('data', (d) => { buf += d.toString(); });
+
+            c.write('GET /upgrade HTTP/1.1\r\nHost: x\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n'
+                + 'GET /after HTTP/1.1\r\nHost: x\r\n\r\n');
+            coroutine.sleep(400);
+            c.close();
+            s.stop();
+
+            assert.equal((buf.match(/HTTP\/1\.1 101/g) || []).length, 1);
+            assert.ok(buf.indexOf('HTTP/1.1 200') < 0,
+                'no HTTP response may be produced after a 101 upgrade');
+        });
+
+        it('client does not reuse a connection after a 101', () => {
+            var conns = 0;
+            var s = new net.TcpServer(0, (c) => {
+                conns++;
+                var bs = new io.BufferedStream(c);
+                bs.EOL = '\r\n';
+                var line = bs.readLine(4096);
+                while (true) {
+                    var h = bs.readLine(4096);
+                    if (!h || h.length === 0)
+                        break;
+                }
+                c.write('HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: x\r\n\r\n');
+                c.close();
+            });
+            s.start();
+            var port = s.socket.localPort;
+
+            var hc = new http.Client();
+            hc.keepAlive = true;
+            var r = hc.getSync('http://127.0.0.1:' + port + '/upgrade');
+            assert.equal(r.statusCode, 101);
+            s.stop();
+
+            assert.equal(conns, 1);
         });
     });
 });
