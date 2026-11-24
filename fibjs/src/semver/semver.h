@@ -75,6 +75,8 @@ struct Range {
     std::vector<std::vector<Comparator>> set;
 
     bool parse(const std::string& range, const Options& options);
+    // Uncached parser used by parse() to fill the LRU entry.
+    bool parse_uncached(const std::string& range, const Options& options);
     bool parse_range(const std::string& range, const Options& options,
         std::vector<Comparator>& out);
     std::string to_string() const;

@@ -9,9 +9,11 @@
 #include "ifs/semver.h"
 #include "ifs/SemVerOptions.h"
 #include "semver.h"
+#include "LruCache.h"
 
 #include <algorithm>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -333,7 +335,7 @@ static bool read_build_ids(const std::string& s, size_t& pos, std::vector<std::s
     return true;
 }
 
-bool parse_version(const std::string& input, const Options& options, SemVer& out)
+static bool parse_version_uncached(const std::string& input, const Options& options, SemVer& out)
 {
     if (input.size() > MAX_LENGTH)
         return false;
@@ -388,6 +390,39 @@ bool parse_version(const std::string& input, const Options& options, SemVer& out
     out.patch = patch;
     out.raw = input;
     out.format();
+    return true;
+}
+
+// Installs and dependency trees re-check the same versions and ranges many
+// times (every edge of a dependency graph, every candidate of a range), so the
+// parser results are kept in an LRU keyed by the raw text and the options that
+// affect parsing (loose for versions; loose plus includePrerelease for ranges).
+// This mirrors the LRU caches in the npm semver package.
+bool parse_version(const std::string& input, const Options& options, SemVer& out)
+{
+    exlib::string key(input.c_str(), input.size());
+    key.push_back(options.loose ? '\x01' : '\x00');
+
+    static LruCache<std::shared_ptr<SemVer>> s_cache(1024, 0, 0);
+
+    std::shared_ptr<SemVer> cached;
+    LruCache<std::shared_ptr<SemVer>>::Resolver resolver =
+        [](exlib::string& cached_key, std::shared_ptr<SemVer>& value) {
+            std::shared_ptr<SemVer> parsed = std::make_shared<SemVer>();
+            Options o;
+            o.loose = cached_key[cached_key.size() - 1] == '\x01';
+
+            if (!parse_version_uncached(std::string(cached_key.data(), cached_key.size() - 1), o, *parsed))
+                return false;
+
+            value = std::move(parsed);
+            return true;
+        };
+
+    if (!s_cache.lookup(key, cached, resolver))
+        return false;
+
+    out = *cached;
     return true;
 }
 
@@ -922,7 +957,7 @@ static bool replace_hyphen(const std::string& range, const Options& options, std
     return true;
 }
 
-bool Range::parse(const std::string& range, const Options& options)
+bool Range::parse_uncached(const std::string& range, const Options& options)
 {
     this->options = options;
     std::string normalized = collapse_ws(range);
@@ -976,6 +1011,39 @@ bool Range::parse(const std::string& range, const Options& options)
         }
     }
 
+    return true;
+}
+
+bool Range::parse(const std::string& range, const Options& options)
+{
+    exlib::string key(range.c_str(), range.size());
+    key.push_back(options.loose ? '\x01' : '\x00');
+    key.push_back(options.includePrerelease ? '\x01' : '\x00');
+
+    static LruCache<std::shared_ptr<Range>> s_cache(1024, 0, 0);
+
+    std::shared_ptr<Range> cached;
+    LruCache<std::shared_ptr<Range>>::Resolver resolver =
+        [](exlib::string& cached_key, std::shared_ptr<Range>& value) {
+            std::shared_ptr<Range> parsed = std::make_shared<Range>();
+            Options o;
+            o.loose = cached_key[cached_key.size() - 2] == '\x01';
+            o.includePrerelease = cached_key[cached_key.size() - 1] == '\x01';
+
+            if (!parsed->parse_uncached(std::string(cached_key.data(), cached_key.size() - 2), o))
+                return false;
+
+            value = std::move(parsed);
+            return true;
+        };
+
+    if (!s_cache.lookup(key, cached, resolver))
+        return false;
+
+    *this = *cached;
+    // `rtl` has no effect on the parsed comparators but is part of the caller's
+    // options record, so keep the exact options the caller passed.
+    this->options = options;
     return true;
 }
 
