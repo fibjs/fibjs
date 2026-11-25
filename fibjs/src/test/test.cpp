@@ -80,6 +80,52 @@ enum {
     CTX_SUITE
 };
 
+// Node wraps the value returned by a case body, a suite body and every hook in
+// PromiseResolve() (lib/internal/test_runner/test.js), so a plain function that
+// returns a promise or any thenable is waited for exactly like an async
+// function. fibjs bodies run on fibers: Isolate::await parks the current fiber
+// until the value settles and throws the rejection into the isolate, so the
+// caller's TryCatch reports it as the body/hook failure. A value without a
+// callable `then` resolves to itself and needs no wait.
+static void await_result(Isolate* isolate, v8::Local<v8::Value> result)
+{
+    if (result.IsEmpty() || !result->IsObject())
+        return;
+
+    v8::Local<v8::Context> context = isolate->context();
+
+    if (!result->IsPromise()) {
+        v8::Local<v8::Value> then;
+        if (!result.As<v8::Object>()->Get(context, isolate->NewString("then")).ToLocal(&then)
+            || !then->IsFunction())
+            return;
+
+        v8::Local<v8::Promise::Resolver> resolver;
+        if (!v8::Promise::Resolver::New(context).ToLocal(&resolver))
+            return;
+        if (resolver->Resolve(context, result).IsNothing())
+            return;
+        result = resolver->GetPromise();
+    }
+
+    isolate->await(result);
+}
+
+// Invoke a case body, suite body or hook and wait for the value it returns.
+// The caller's TryCatch observes both a synchronous throw from the call and a
+// rejection thrown back by await_result(). Returns false only when the call
+// itself threw.
+static bool call_and_await(Isolate* isolate, v8::Local<v8::Function> func,
+    v8::Local<v8::Value> this_arg, int argc, v8::Local<v8::Value>* argv)
+{
+    v8::Local<v8::Value> result;
+    if (!func->Call(func->GetCreationContextChecked(), this_arg, argc, argv).ToLocal(&result))
+        return false;
+
+    await_result(isolate, result);
+    return true;
+}
+
 static v8::Local<v8::Object> make_case_context(_case* c, int32_t kind);
 
 class _case : public obj_base {
@@ -201,15 +247,12 @@ public:
         td->m_describe = this;
 
         TryCatch try_catch;
-        v8::Local<v8::Value> result;
         v8::Local<v8::Value> ctx_arg = make_case_context(this, CTX_SUITE);
-        bool success = block->Call(block->GetCreationContextChecked(),
-                                ctx_arg, 1, &ctx_arg)
-                           .ToLocal(&result);
 
-        // If a Promise is returned, wait for it to settle (async describe)
-        if (success && !result.IsEmpty() && result->IsPromise())
-            isolate->await(result);
+        // Node awaits the suite body (PromiseResolve also assimilates
+        // thenables), so a plain function returning a promise collects cases
+        // exactly like an async body.
+        bool success = call_and_await(isolate, block, ctx_arg, 1, &ctx_arg);
 
         if (try_catch.HasCaught()) {
             // describe block threw: mark this suite failed, all its tests fail,
@@ -423,7 +466,7 @@ public:
                             TryCatch try_catch;
                             v8::Local<v8::Function> func = p->m_hooks[HOOK_BEFORE][i].Get(isolate->m_isolate);
                             v8::Local<v8::Value> ctx_arg = make_case_context(p, CTX_SUITE);
-                            func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg).IsEmpty();
+                            call_and_await(isolate, func, v8::Object::New(isolate->m_isolate), 1, &ctx_arg);
                             if (try_catch.HasCaught()) {
                                 // before failed: mark the suite failed, all its tests fail,
                                 // keep running (aligned with Node). The failure itself
@@ -534,8 +577,7 @@ public:
                                     TryCatch try_catch;
                                     v8::Local<v8::Function> func = p2->m_hooks[HOOK_BEFORECASE][i].Get(isolate->m_isolate);
                                     v8::Local<v8::Value> ctx_arg = make_case_context(p1, CTX_TEST);
-                                    func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg)
-                                        .IsEmpty();
+                                    call_and_await(isolate, func, v8::Object::New(isolate->m_isolate), 1, &ctx_arg);
                                     if (try_catch.HasCaught()) {
                                         // beforeEach failed: current test fails and its block
                                         // is skipped, subsequent tests keep running (aligned with Node)
@@ -567,7 +609,8 @@ public:
 
                             v8::Local<v8::Function> func = p1->m_block.Get(isolate->m_isolate);
                             v8::Local<v8::Value> ctx_arg = make_case_context(p1, CTX_TEST);
-                            func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg).IsEmpty();
+                            v8::Local<v8::Object> this_arg = v8::Object::New(isolate->m_isolate);
+                            call_and_await(isolate, func, this_arg, 1, &ctx_arg);
                             if (try_catch.HasCaught()) {
                                 v8::Local<v8::Value> exp = try_catch.Exception();
                                 if (exp->IsFunction()) {
@@ -575,7 +618,7 @@ public:
                                     // mean "run this as the body" (kept for compatibility)
                                     func = exp.As<v8::Function>();
                                     try_catch.Reset();
-                                    func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg).IsEmpty();
+                                    call_and_await(isolate, func, this_arg, 1, &ctx_arg);
                                 }
                             }
 
@@ -651,8 +694,9 @@ public:
                         } else {
                             if (p1->m_level < p->m_run_level || p1->m_runtime_skip) {
                                 // ctx.skip() called from the body counts as a
-                                // skipped case and suppresses afterEach, exactly
-                                // like an options-level skip (Node parity).
+                                // skipped case; unlike an options-level skip it
+                                // has already run beforeEach and its body, so
+                                // afterEach still runs (Node parity).
                                 p->m_skip++;
                                 val->Set(_context, isolate->NewString("status"), isolate->NewString("skipped")).IsJust();
                                 str.append(COLOR_GRAY + "\xe2\x97\x8b ");
@@ -708,8 +752,12 @@ public:
                     // runHook iterates forwards. A throwing hook stops the rest
                     // of the chain (Node's runHook throws out of the loop), and
                     // a failed before suppresses the whole afterEach phase: Node
-                    // never starts the subtests in that case.
-                    if (p1->m_level >= p->m_run_level && !before_failed && !p1->m_runtime_skip) {
+                    // never starts the subtests in that case. A runtime
+                    // ctx.skip() happens inside the body, after beforeEach has
+                    // already run, so Node still runs afterEach (wasSkippedBeforeRun
+                    // is only true for a declarative skip, which never starts the
+                    // case at all).
+                    if (p1->m_level >= p->m_run_level && !before_failed) {
                         v8::HandleScope handle_scope(isolate->m_isolate);
 
                         bool hook_failed = false;
@@ -719,7 +767,7 @@ public:
                                 TryCatch try_catch;
                                 v8::Local<v8::Function> func = p2->m_hooks[HOOK_AFTERCASE][i].Get(isolate->m_isolate);
                                 v8::Local<v8::Value> ctx_arg = make_case_context(p1, CTX_TEST);
-                                func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg).IsEmpty();
+                                call_and_await(isolate, func, v8::Object::New(isolate->m_isolate), 1, &ctx_arg);
                                 if (try_catch.HasCaught()) {
                                     // afterEach failed: mark current test failed (even if it
                                     // passed), stop the remaining hooks (aligned with Node)
@@ -811,7 +859,7 @@ public:
                         TryCatch try_catch;
                         v8::Local<v8::Function> func = p->m_hooks[HOOK_AFTER][i].Get(isolate->m_isolate);
                         v8::Local<v8::Value> ctx_arg = make_case_context(p, CTX_SUITE);
-                        func->Call(func->GetCreationContextChecked(), v8::Object::New(isolate->m_isolate), 1, &ctx_arg).IsEmpty();
+                        call_and_await(isolate, func, v8::Object::New(isolate->m_isolate), 1, &ctx_arg);
                         if (try_catch.HasCaught()) {
                             // after failed：与 Node 一致 —— 子测试保持各自状态（已经打印过的 √
                             // 不再被改写），钩子失败本身作为一条独立失败记录：走叶子测试相同的
@@ -994,8 +1042,9 @@ private:
     bool m_todo_inherited = false;
 
     // context.skip() / context.todo() called from inside the body (Node parity):
-    // a runtime skip counts as skipped and suppresses this case's afterEach,
-    // a runtime todo classifies the outcome as todo.
+    // a runtime skip counts as skipped but still runs this case's afterEach
+    // (Node only suppresses the hooks for a declarative skip, which never
+    // starts the case), a runtime todo classifies the outcome as todo.
     bool m_runtime_skip = false;
     bool m_runtime_todo = false;
 
