@@ -245,6 +245,7 @@ describe('runner context object', { skip: !isFibjs }, () => {
             'CTX afterEach name=ctx-case',
             'CTX beforeEach name=ctx-skip',
             'CTX skip called',
+            'CTX afterEach name=ctx-skip',
             'CTX beforeEach name=ctx-todo',
             'CTX todo called',
             'CTX afterEach name=ctx-todo',
@@ -259,7 +260,7 @@ describe('runner context object', { skip: !isFibjs }, () => {
         assert.ok(out.indexOf('CTX api skip=function todo=function diagnostic=function assert=function') >= 0, out);
     });
 
-    it('a runtime skip suppresses afterEach; a runtime todo does not fail', () => {
+    it('a runtime skip still runs afterEach; a runtime todo does not fail', () => {
         const { code, out } = runFile(CONTEXT_FIXTURE);
         const sum = summary(out);
 

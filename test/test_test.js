@@ -780,4 +780,96 @@ describe("test", () => {
             ])
         });
     });
+
+    describe("runtime ctx.skip keeps the per-case hooks", () => {
+        var steps = [];
+
+        afterEach((ctx) => {
+            steps.push('afterEach:' + ctx.name);
+        });
+
+        it('runtime skip', (ctx) => {
+            steps.push('body');
+            ctx.skip();
+        });
+
+        it('check', () => {
+            // A runtime skip happens after the case has started: beforeEach
+            // already ran and afterEach still runs. Only a declarative skip
+            // (never started) suppresses the per-case hooks.
+            assert.deepEqual(steps, ['body', 'afterEach:runtime skip']);
+        });
+    });
+
+    describe("plain bodies returning promises are awaited", () => {
+        var steps = [];
+
+        it('promise', () => new Promise((resolve) => {
+            setTimeout(() => {
+                steps.push('promise');
+                resolve();
+            }, 20);
+        }));
+
+        it('thenable', () => ({
+            then(resolve) {
+                setTimeout(() => {
+                    steps.push('thenable');
+                    resolve();
+                }, 20);
+            }
+        }));
+
+        it('check', () => {
+            assert.deepEqual(steps, ['promise', 'thenable']);
+        });
+    });
+
+    var hookPromiseSteps = [];
+
+    describe("hooks returning promises are awaited", () => {
+        before(() => new Promise((resolve) => {
+            setTimeout(() => {
+                hookPromiseSteps.push('before');
+                resolve();
+            }, 10);
+        }));
+
+        beforeEach(() => new Promise((resolve) => {
+            setTimeout(() => {
+                hookPromiseSteps.push('beforeEach');
+                resolve();
+            }, 10);
+        }));
+
+        afterEach(() => new Promise((resolve) => {
+            setTimeout(() => {
+                hookPromiseSteps.push('afterEach');
+                resolve();
+            }, 10);
+        }));
+
+        after(() => new Promise((resolve) => {
+            setTimeout(() => {
+                hookPromiseSteps.push('after');
+                resolve();
+            }, 10);
+        }));
+
+        it('case', () => {
+            hookPromiseSteps.push('body');
+        });
+
+        it('check through afterEach', () => {
+            assert.deepEqual(hookPromiseSteps,
+                ['before', 'beforeEach', 'body', 'afterEach', 'beforeEach']);
+        });
+    });
+
+    it("after hook promise is awaited before the next case", () => {
+        assert.deepEqual(hookPromiseSteps, [
+            'before', 'beforeEach', 'body', 'afterEach',
+            'beforeEach', 'afterEach', 'after'
+        ]);
+    });
 });

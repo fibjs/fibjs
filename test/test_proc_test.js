@@ -38,7 +38,8 @@ const FIXTURES = {
     'leak_child': 'leak_child.js',
     'fail_hang': 'fail_hang.js',
     'hook_before_error': 'hook_before_error.js',
-    'top_hook': 'top_hook.js'
+    'top_hook': 'top_hook.js',
+    'promise_body': 'promise_body.js'
 };
 
 const DEFAULT_TIMEOUT = 20000; // protective timeout (ms) when the subprocess hangs
@@ -474,5 +475,27 @@ describe("test framework process-level behavior", () => {
             "expect top-level before to run, got: " + JSON.stringify(r.stdout));
         assert.ok(r.stdout.some(l => l.includes('[top after RAN]')),
             "expect top-level after to run, got: " + JSON.stringify(r.stdout));
+    });
+
+    // A plain body returning a promise is awaited (Node's PromiseResolve), so a
+    // late rejection fails its case instead of passing in 0ms and surfacing as
+    // post-run asynchronous activity.
+    it("promise body: a returned promise is awaited", () => {
+        var r = runFixture('promise_body');
+
+        assert.equal(r.timedout, false, "subprocess must exit normally");
+        assert.equal(r.exitCode, 1);
+
+        var s = testSummary(r.stdout);
+        assert.deepEqual({ completed: s.completed, passed: s.passed, failed: s.failed },
+            { completed: 3, passed: 1, failed: 2 },
+            "expect the resolved case to pass and both rejections to fail, got: " + JSON.stringify(s));
+
+        var resolved = r.stdout.findIndex(l => l.includes('[RESOLVED RAN]'));
+        var summary = r.stdout.findIndex(l => l.includes('tests completed'));
+        assert.ok(resolved >= 0 && resolved < summary,
+            "the resolved promise must settle during its case, got: " + JSON.stringify(r.stdout));
+        assert.ok(!r.stdout.some(l => l.includes('asynchronous activity after the tests ended')),
+            "the rejection must be reported as the case failure, got: " + JSON.stringify(r.stdout));
     });
 });

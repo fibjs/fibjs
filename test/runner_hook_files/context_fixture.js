@@ -36,7 +36,9 @@ if (process.env.RUNNER_HOOK_FIXTURE === '1') {
             c.assert.equal(1, 1);
         });
 
-        // A runtime skip counts as skipped and suppresses afterEach.
+        // A runtime skip counts as skipped but still runs afterEach: the case
+        // started, so the per-case hooks wrap it (only a declarative skip, which
+        // never starts the case, suppresses them).
         it('ctx-skip', (c) => {
             console.log('CTX skip called');
             c.skip();
