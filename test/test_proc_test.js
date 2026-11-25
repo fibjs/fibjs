@@ -41,13 +41,26 @@ const FIXTURES = {
     'hook_before_error': 'hook_before_error.js',
     'top_hook': 'top_hook.js',
     'promise_body': 'promise_body.js',
-    'json_report': 'json_report.js'
+    'json_report': 'json_report.js',
+    'name_filter': 'name_filter.js'
 };
 
 const DEFAULT_TIMEOUT = 20000; // protective timeout (ms) when the subprocess hangs
 
 function stripAnsi(s) {
     return s.replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '');
+}
+
+// A filtered child must not leave a hole in a JSON tests array: v8 holes
+// serialize as null and make the array shape depend on the match position.
+function assertNoNullEntries(node) {
+    if (!node.tests)
+        return;
+
+    node.tests.forEach((child) => {
+        assert.ok(child, "result tree must not contain null placeholders");
+        assertNoNullEntries(child);
+    });
 }
 
 // Parse the summary lines emitted by the test framework on stdout
@@ -592,5 +605,54 @@ describe("test framework process-level behavior", () => {
         assert.equal(report.total, 6);
         assert.equal(report.skipped, 2);
         assert.equal(report.cancelled, 2);
+    });
+
+    it("json reporter: name filtering leaves no null placeholders", () => {
+        var outPath = path.join(os.tmpdir(), 'fibjs-test-filter-' + process.pid + '.json');
+        try { fs.unlink(outPath); } catch (e) { }
+
+        var r = runFixture('name_filter', {
+            args: ['--test', '--test-name-pattern=/BBB/',
+                '--test-reporter=json', '--test-reporter-destination=' + outPath,
+                path.join(FIXTURE_DIR, 'name_filter.js')],
+            env: { FIBJS_TEST_PROC_FIXTURE: '1' }
+        });
+
+        assert.equal(r.timedout, false, "subprocess must exit normally");
+        assert.equal(r.exitCode, 0);
+
+        var report = JSON.parse(fs.readTextFile(outPath));
+        fs.unlink(outPath);
+
+        assert.equal(report.total, 2);
+        assert.equal(report.tests.length, 1);
+        assert.equal(report.tests[0].title, 'BBB matched');
+        assert.deepEqual(report.tests[0].tests.map((t) => t.title), ['b-1', 'b-2']);
+        assertNoNullEntries(report);
+    });
+
+    it("json reporter: a filtered case match keeps arrays compact", () => {
+        var outPath = path.join(os.tmpdir(), 'fibjs-test-filter-leaf-' + process.pid + '.json');
+        try { fs.unlink(outPath); } catch (e) { }
+
+        var r = runFixture('name_filter', {
+            args: ['--test', '--test-name-pattern=/b-2/',
+                '--test-reporter=json', '--test-reporter-destination=' + outPath,
+                path.join(FIXTURE_DIR, 'name_filter.js')],
+            env: { FIBJS_TEST_PROC_FIXTURE: '1' }
+        });
+
+        assert.equal(r.timedout, false, "subprocess must exit normally");
+        assert.equal(r.exitCode, 0);
+
+        var report = JSON.parse(fs.readTextFile(outPath));
+        fs.unlink(outPath);
+
+        assert.equal(report.total, 1);
+        assert.equal(report.tests.length, 1);
+        assert.equal(report.tests[0].title, 'BBB matched');
+        assert.equal(report.tests[0].tests.length, 1);
+        assert.equal(report.tests[0].tests[0].title, 'b-2');
+        assertNoNullEntries(report);
     });
 });
