@@ -78,6 +78,12 @@
       `StringMap`, `ValueMap` and `KVMap` now type the header, listener,
       environment, module and batch key/value dictionaries of HTTP, EventEmitter,
       process/util/os, Redis, LevelDB, SandBox, WASI and RTC.
+    * test - `--test-reporter=json` writes the result tree as one JSON document
+      (per-case `status`, `file`, `duration`, `trace` and nested suites) to
+      stdout, stderr or a file; a file destination keeps the spec output. Each
+      node now records its defining file, which also fixes `context.filePath`
+      when `--test` loads several files, and a case or suite shares one context
+      object between its body and hooks.
 * **breaking** :
     * mq - a JavaScript handler function's return value is ignored; it is no
       longer converted to the next handler.

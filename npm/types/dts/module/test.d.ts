@@ -42,9 +42,13 @@
  *  - **Context object**: a body (and a suite body, and a hook) is called with a context carrying
  *    `name`, `fullName` (`'suite > case'`), `filePath`, `passed`, `diagnostic()`, `log()` and the
  *    shared `assert` module; a case context additionally offers `skip()` and `todo()`, which
- *    reclassify the running case. A runtime `skip()` is counted as skipped but does not suppress
- *    the per-case hooks: `beforeEach` has already run, and `afterEach` still runs. Only a
- *    declarative `skip` suppresses both, because the case never starts.
+ *    reclassify the running case. The same context object is reused by the case body and every
+ *    `beforeEach`/`afterEach` hook that wraps it, and a suite shares one context between its
+ *    `before` and `after` hooks, so state stored on the context survives between them.
+ *    `filePath` is the test file that defined the node, not the last file loaded. A runtime
+ *    `skip()` is counted as skipped but does not suppress the per-case hooks: `beforeEach` has
+ *    already run, and `afterEach` still runs. Only a declarative `skip` suppresses both, because
+ *    the case never starts.
  *    `diagnostic()` and `log()` queue a line that is printed under the case. Subtests, per-case
  *    plans, mocks and snapshots are not modelled, so `test()`, `plan()`, `mock()` and `waitFor()`
  *    are absent.
@@ -83,8 +87,13 @@
  *    precedence over the name pattern. Both options are repeatable (the values are OR-ed) and
  *    also accept a regular expression literal with flags (`/re/i`); a filtered run reports only
  *    the cases it executed. `--test-concurrency` and `--test-isolation` are
- *    accepted for compatibility (files always run in-process and sequentially);
- *    `--test-timeout`, `--test-reporter` and watch/coverage modes are not supported.
+ *    accepted for compatibility (files always run in-process and sequentially).
+ *    `--test-reporter=json` writes the whole result tree as one JSON document: every case
+ *    carries `status` (`passed`/`failed`/`skipped`/`todo`/`cancelled`), `file`, `duration` and a
+ *    `trace` when it failed, and suites nest their `tests` and totals. The document is written to
+ *    `--test-reporter-destination=<stdout|stderr|path>`; a file destination keeps the spec
+ *    output on stdout, stdout suppresses it. Custom reporters, `--test-timeout`, watch and
+ *    coverage modes are not supported; coverage comes from `--cov`.
  *
  *  Import:
  *  ```JavaScript
@@ -153,9 +162,10 @@
  *
  *  - `require('test')` and `require('node:test')` return the same object; the `node:` prefixed id
  *    is the builtin, not a user-installed package.
- *  - Not provided: `run()`, `mock`, `snapshot`, subtests, reporters, watch mode and coverage;
- *    the case options only honor `skip`/`todo`/`only`, and `timeout` is ignored. The context
- *    object offers the members listed above; the subtest and per-case-plan APIs are absent.
+ *  - Not provided: `run()`, `mock`, `snapshot`, subtests, custom reporters, watch mode and
+ *    coverage; the case options only honor `skip`/`todo`/`only`, and `timeout` is ignored. The
+ *    context object offers the members listed above; the subtest and per-case-plan APIs are
+ *    absent.
  *  - A todo case runs its body like any other case; only the classification differs (it is
  *    counted in the todo total and never fails the run). A `describe.todo`/`suite.todo` marks its
  *    own cases as todo as well, so a throwing case inside it is still reported on its line but
