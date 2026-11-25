@@ -526,12 +526,12 @@ describe("test framework process-level behavior", () => {
         fs.unlink(outPath);
 
         assert.equal(report.title, '<root>');
-        assert.equal(report.total, 5);
+        assert.equal(report.total, 6);
         assert.equal(report.passed, 1);
         assert.equal(report.failed || 0, 0);
         assert.equal(report.skipped, 2);
         assert.equal(report.todo, 1);
-        assert.equal(report.cancelled, 1);
+        assert.equal(report.cancelled, 2);
         assert.equal(report.status, 'failed');
 
         var leaves = [];
@@ -552,6 +552,7 @@ describe("test framework process-level behavior", () => {
         assert.equal(byTitle['declarative todo'].status, 'todo');
         assert.equal(byTitle['runtime skip'].status, 'skipped');
         assert.equal(byTitle['cancelled case'].status, 'cancelled');
+        assert.equal(byTitle['nested cancelled case'].status, 'cancelled');
 
         leaves.forEach((c) => {
             assert.ok(c.file && c.file.endsWith('json_report.js'),
@@ -563,6 +564,18 @@ describe("test framework process-level behavior", () => {
         assert.equal(failing.status, 'failed');
         assert.ok(/boom before/.test(failing.trace), failing.trace);
         assert.ok(failing.file.endsWith('json_report.js'));
+
+        var skipped = report.tests.find((t) => t.title === 'skipped suite');
+        assert.ok(skipped, "expect the skipped suite, got: " + JSON.stringify(report.tests));
+        assert.equal(skipped.status, 'skipped');
+        assert.equal(skipped.total || 0, 0);
+        assert.deepEqual(skipped.tests, []);
+
+        var nested = failing.tests.find((t) => t.title === 'nested suite');
+        assert.ok(nested, "expect the nested suite, got: " + JSON.stringify(failing.tests));
+        assert.equal(nested.status, 'cancelled');
+        assert.equal(nested.cancelled, 1);
+        assert.equal(nested.tests[0].status, 'cancelled');
     });
 
     it("json reporter: stdout mode emits only the document", () => {
@@ -576,7 +589,8 @@ describe("test framework process-level behavior", () => {
         assert.equal(r.exitCode, 1);
 
         var report = JSON.parse(r.stdout.join('\n'));
-        assert.equal(report.total, 5);
+        assert.equal(report.total, 6);
         assert.equal(report.skipped, 2);
+        assert.equal(report.cancelled, 2);
     });
 });

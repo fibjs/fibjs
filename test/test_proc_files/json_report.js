@@ -18,10 +18,18 @@ if (process.env.FIBJS_TEST_PROC_FIXTURE === '1') {
         it('runtime skip', (ctx) => { ctx.skip(); });
     });
 
+    describe.skip('skipped suite', () => {
+        it('never runs', () => { });
+    });
+
     describe('failing before', () => {
         before(() => {
             throw new Error('boom before');
         });
         it('cancelled case', () => { });
+
+        describe('nested suite', () => {
+            it('nested cancelled case', () => { });
+        });
     });
 }
