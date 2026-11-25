@@ -872,4 +872,63 @@ describe("test", () => {
             'beforeEach', 'afterEach', 'after'
         ]);
     });
+
+    describe("one context per case execution", () => {
+        var seen = [];
+
+        describe('inner', () => {
+            beforeEach((ctx) => {
+                ctx.mark = 'from-beforeEach';
+                seen.push('beforeEach:' + ctx.mark);
+            });
+
+            it('body sees hook state', (ctx) => {
+                seen.push('body:' + ctx.mark);
+            });
+
+            afterEach((ctx) => {
+                seen.push('afterEach:' + ctx.mark);
+            });
+        });
+
+        it('check', () => {
+            assert.deepEqual(seen, [
+                'beforeEach:from-beforeEach',
+                'body:from-beforeEach',
+                'afterEach:from-beforeEach'
+            ]);
+        });
+    });
+
+    describe("one context per suite", () => {
+        var seen = [];
+
+        describe('inner', () => {
+            before((ctx) => {
+                ctx.mark = 'from-before';
+                seen.push('before:' + ctx.mark);
+            });
+
+            it('case', () => {
+                seen.push('body');
+            });
+
+            after((ctx) => {
+                seen.push('after:' + ctx.mark);
+            });
+        });
+
+        it('check', () => {
+            assert.deepEqual(seen, [
+                'before:from-before',
+                'body',
+                'after:from-before'
+            ]);
+        });
+    });
+
+    it("context filePath names the defining file", (ctx) => {
+        assert.isString(ctx.filePath);
+        assert.ok(ctx.filePath.endsWith('test_test.js'), ctx.filePath);
+    });
 });

@@ -19,6 +19,7 @@ var assert = require('assert');
 
 var child_process = require('child_process');
 var path = require('path');
+var os = require('os');
 var util = require('util');
 var io = require('io');
 var fs = require('fs');
@@ -39,7 +40,8 @@ const FIXTURES = {
     'fail_hang': 'fail_hang.js',
     'hook_before_error': 'hook_before_error.js',
     'top_hook': 'top_hook.js',
-    'promise_body': 'promise_body.js'
+    'promise_body': 'promise_body.js',
+    'json_report': 'json_report.js'
 };
 
 const DEFAULT_TIMEOUT = 20000; // protective timeout (ms) when the subprocess hangs
@@ -265,7 +267,10 @@ function runFixture(scene, opts) {
     if (opts.watchdogMs)
         env.FIBJS_TEST_WATCHDOG_MS = String(opts.watchdogMs);
 
-    var bs = child_process.spawn(process.execPath, [path.join(FIXTURE_DIR, fixture)], { env: env });
+    if (opts.env)
+        Object.assign(env, opts.env);
+
+    var bs = child_process.spawn(process.execPath, opts.args || [path.join(FIXTURE_DIR, fixture)], { env: env });
     var stdout = new io.BufferedStream(bs.stdout);
     var stderr = new io.BufferedStream(bs.stderr);
 
@@ -497,5 +502,81 @@ describe("test framework process-level behavior", () => {
             "the resolved promise must settle during its case, got: " + JSON.stringify(r.stdout));
         assert.ok(!r.stdout.some(l => l.includes('asynchronous activity after the tests ended')),
             "the rejection must be reported as the case failure, got: " + JSON.stringify(r.stdout));
+    });
+
+    // The built-in json reporter writes the same result tree the spec reporter
+    // uses, including skipped/todo/cancelled cases and their defining file.
+    it("json reporter: per-case status and file in the document", () => {
+        var outPath = path.join(os.tmpdir(), 'fibjs-test-report-' + process.pid + '.json');
+        try { fs.unlink(outPath); } catch (e) { }
+
+        var r = runFixture('json_report', {
+            args: ['--test', '--test-reporter=json',
+                '--test-reporter-destination=' + outPath,
+                path.join(FIXTURE_DIR, 'json_report.js')],
+            env: { FIBJS_TEST_PROC_FIXTURE: '1' }
+        });
+
+        assert.equal(r.timedout, false, "subprocess must exit normally");
+        assert.equal(r.exitCode, 1, "the failing before hook must fail the run");
+        assert.ok(r.stdout.some(l => l.includes('tests completed')),
+            "a file destination keeps the spec output, got: " + JSON.stringify(r.stdout));
+
+        var report = JSON.parse(fs.readTextFile(outPath));
+        fs.unlink(outPath);
+
+        assert.equal(report.title, '<root>');
+        assert.equal(report.total, 5);
+        assert.equal(report.passed, 1);
+        assert.equal(report.failed || 0, 0);
+        assert.equal(report.skipped, 2);
+        assert.equal(report.todo, 1);
+        assert.equal(report.cancelled, 1);
+        assert.equal(report.status, 'failed');
+
+        var leaves = [];
+        (function collect(node) {
+            (node.tests || []).forEach((t) => {
+                if (t.tests)
+                    collect(t);
+                else
+                    leaves.push(t);
+            });
+        })(report);
+
+        var byTitle = {};
+        leaves.forEach((c) => { byTitle[c.title] = c; });
+
+        assert.equal(byTitle['ok'].status, 'passed');
+        assert.equal(byTitle['declarative skip'].status, 'skipped');
+        assert.equal(byTitle['declarative todo'].status, 'todo');
+        assert.equal(byTitle['runtime skip'].status, 'skipped');
+        assert.equal(byTitle['cancelled case'].status, 'cancelled');
+
+        leaves.forEach((c) => {
+            assert.ok(c.file && c.file.endsWith('json_report.js'),
+                c.title + " must carry its defining file, got: " + JSON.stringify(c));
+        });
+
+        var failing = report.tests.find((t) => t.title === 'failing before');
+        assert.ok(failing, "expect the failing suite, got: " + JSON.stringify(report.tests));
+        assert.equal(failing.status, 'failed');
+        assert.ok(/boom before/.test(failing.trace), failing.trace);
+        assert.ok(failing.file.endsWith('json_report.js'));
+    });
+
+    it("json reporter: stdout mode emits only the document", () => {
+        var r = runFixture('json_report', {
+            args: ['--test', '--test-reporter=json',
+                path.join(FIXTURE_DIR, 'json_report.js')],
+            env: { FIBJS_TEST_PROC_FIXTURE: '1' }
+        });
+
+        assert.equal(r.timedout, false, "subprocess must exit normally");
+        assert.equal(r.exitCode, 1);
+
+        var report = JSON.parse(r.stdout.join('\n'));
+        assert.equal(report.total, 5);
+        assert.equal(report.skipped, 2);
     });
 });
