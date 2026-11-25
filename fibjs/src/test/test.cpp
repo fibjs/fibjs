@@ -772,7 +772,7 @@ public:
 
                         val->Set(_context, isolate->NewString("duration"), v8::Number::New(isolate->m_isolate, p1->m_duration)).IsJust();
 
-                        p->m_retVal_tests->Set(_context, p->m_pos - 1, val).IsJust();
+                        p->m_retVal_tests->Set(_context, p->m_out_pos++, val).IsJust();
                     }
 
                     // node's spec reporter prints the diagnostics collected by
@@ -849,7 +849,7 @@ public:
                                         if (mode <= console_base::C_ERROR)
                                             msgs.append(err);
 
-                                        v8::Local<v8::Object> val = p->m_retVal_tests->Get(_context, p->m_pos - 1).ToLocalChecked().As<v8::Object>();
+                                        v8::Local<v8::Object> val = p->m_retVal_tests->Get(_context, p->m_out_pos - 1).ToLocalChecked().As<v8::Object>();
                                         val->Set(_context, isolate->NewString("status"), isolate->NewString("failed")).IsJust();
                                         val->Set(_context, isolate->NewString("trace"), isolate->NewString(err)).IsJust();
 
@@ -995,7 +995,7 @@ public:
                 if (stack.size() > 0) {
                     p1 = stack[stack.size() - 1];
 
-                    p1->m_retVal_tests->Set(_context, p1->m_pos - 1, p->m_retVal).IsJust();
+                    p1->m_retVal_tests->Set(_context, p1->m_out_pos++, p->m_retVal).IsJust();
 
                     p1->m_total += p->m_total;
                     p1->m_pass += p->m_pass;
@@ -1153,6 +1153,10 @@ private:
     QuickArray<obj_ptr<_case>> m_subs;
     QuickArray<v8::Global<v8::Function>> m_hooks[4];
     int32_t m_pos = 0;
+    // Index into m_retVal_tests. It advances only when a child is actually
+    // reported, so filtered children leave no holes (a hole in the v8 array
+    // serializes as null and makes the position depend on the pattern).
+    int32_t m_out_pos = 0;
 };
 
 static void two_arg_test_wrapper(const v8::FunctionCallbackInfo<v8::Value>& args)

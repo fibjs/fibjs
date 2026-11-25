@@ -83,10 +83,11 @@
       stdout, stderr or a file; a file destination keeps the spec output. Suite
       status aggregates the subtree (`skipped` for a pruned suite, `cancelled`
       for cases stopped by a failing before hook), so an unstarted or interrupted
-      suite is no longer reported as passed. Each node now records its defining
-      file, which also fixes `context.filePath` when `--test` loads several
-      files, and a case or suite shares one context object between its body and
-      hooks.
+      suite is no longer reported as passed. Filtered runs omit non-matching
+      nodes instead of leaving null placeholders in `tests`. Each node now
+      records its defining file, which also fixes `context.filePath` when
+      `--test` loads several files, and a case or suite shares one context
+      object between its body and hooks.
 * **breaking** :
     * mq - a JavaScript handler function's return value is ignored; it is no
       longer converted to the next handler.

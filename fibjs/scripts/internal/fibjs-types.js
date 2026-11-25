@@ -124060,10 +124060,12 @@ declare module 'subtle' {
  *    accepted for compatibility (files always run in-process and sequentially).
  *    \`--test-reporter=json\` writes the whole result tree as one JSON document: every case
  *    carries \`status\` (\`passed\`/\`failed\`/\`skipped\`/\`todo\`/\`cancelled\`), \`file\`, \`duration\` and a
- *    \`trace\` when it failed, and suites nest their \`tests\` and totals. A suite's status
- *    aggregates its subtree: a failure wins, a suite whose cases were cancelled by an
- *    ancestor's failing \`before\` is \`cancelled\`, and a suite pruned by \`skip\` (or shadowed by
- *    \`only\`) is \`skipped\` even though it has no cases. The document is written to
+ *    \`trace\` when it failed, and suites nest their \`tests\` and totals. Children removed by
+ *    \`--test-name-pattern\`/\`--test-skip-pattern\` are omitted from \`tests\` instead of being left
+ *    as placeholders, so the arrays stay compact. A suite's status aggregates its subtree: a
+ *    failure wins, a suite whose cases were cancelled by an ancestor's failing \`before\` is
+ *    \`cancelled\`, and a suite pruned by \`skip\` (or shadowed by \`only\`) is \`skipped\` even though
+ *    it has no cases. The document is written to
  *    \`--test-reporter-destination=<stdout|stderr|path>\`; a file destination keeps the spec
  *    output on stdout, stdout suppresses it. Custom reporters, \`--test-timeout\`, watch and
  *    coverage modes are not supported; coverage comes from \`--cov\`.
