@@ -162,6 +162,24 @@ static exlib::string current_entry_file()
     return isolate->m_fname;
 }
 
+// opt_tools/test.js sets this global around the case it registers on behalf of
+// a test file that failed to load. The case is runner bookkeeping, not a test
+// declared by the file, so --test-name-pattern / --test-skip-pattern must not
+// filter it: a filtered run with a broken file used to report zero tests as a
+// green run, dropping the error, the failed status and the exit code alike.
+// Node reports the file itself as failed and applies the filters only to tests
+// defined inside a file.
+static bool force_visible_case()
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Value> v = context->Global()
+                                 ->Get(context, isolate->NewString("__fibjs_test_force_visible"))
+                                 .FromMaybe(v8::Local<v8::Value>());
+
+    return !v.IsEmpty() && v->IsBoolean() && v->BooleanValue(isolate->m_isolate);
+}
+
 class _case : public obj_base {
     _case(exlib::string name = "", int32_t level = TEST_TODO)
         : m_level(level)
@@ -320,6 +338,7 @@ public:
         _case* p = new _case(name, level);
         p->m_file = now->m_file.empty() ? current_entry_file() : now->m_file;
         p->m_block.Reset(Isolate::current()->m_isolate, block);
+        p->m_force_visible = force_visible_case();
 
         now->append(p);
         return result_t();
@@ -557,6 +576,10 @@ public:
                 // countCompletedTest checks skipped first).
                 bool is_todo = (p1->m_level != _case::TEST_SKIP)
                     && (p1->m_level == _case::TEST_TODO || p1->m_todo_inherited);
+                // A forced case (a file failed to load) always starts; a normal
+                // case starts when its level reaches the run level of the
+                // enclosing suite. See force_visible_case().
+                bool case_runs = p1->m_force_visible || p1->m_level >= p->m_run_level;
 
                 // --test-name-pattern / --test-skip-pattern (chain rule, Node
                 // parity): a node is visible when a name pattern matches its
@@ -569,7 +592,10 @@ public:
 
                 bool filtering = td->m_name_patterns.size() || td->m_skip_patterns.size();
 
-                if (filtering && !node_visible(td, p1)) {
+                // A forced case (a file failed to load) is never filtered: the
+                // name/skip patterns select tests inside a file, they must not
+                // be able to turn a load failure into a green zero-test run.
+                if (filtering && !p1->m_force_visible && !node_visible(td, p1)) {
                     if (is_leaf)
                         continue; // pruned: not executed, not counted
                     if (p1->m_level == _case::TEST_SKIP)
@@ -584,9 +610,10 @@ public:
                 // Below the run level (a sibling marked `.only`): without a
                 // filter the entry is counted as skipped; while filtering it is
                 // invisible, like Node. Only a plain case can be shadowed this
-                // way — skip/todo marks have their own levels.
+                // way — skip/todo marks have their own levels. A forced case is
+                // exempt (a load failure cannot be hidden by an unrelated only).
                 if (filtering && is_leaf && p1->m_level == _case::TEST_NORMAL
-                    && p1->m_level < p->m_run_level)
+                    && !case_runs)
                     continue;
 
                 if (is_leaf) {
@@ -611,10 +638,10 @@ public:
                     // body and afterEach; Node hands the same TestContext to all
                     // of them, so state stored in a hook survives to its pair.
                     v8::Local<v8::Value> case_ctx;
-                    if (p1->m_level >= p->m_run_level && !before_failed)
+                    if (case_runs && !before_failed)
                         case_ctx = make_case_context(p1, CTX_TEST);
 
-                    if (p1->m_level >= p->m_run_level) {
+                    if (case_runs) {
                         v8::HandleScope handle_scope(isolate->m_isolate);
 
                         if (before_failed)
@@ -650,7 +677,7 @@ public:
                         // so a throwing body only shows up in the details and
                         // never fails the run. A bodyless todo(...) just has no
                         // body to run.
-                        if (p1->m_level >= p->m_run_level && p1->m_errors.size() == 0 && !p1->m_block.IsEmpty()) {
+                        if (case_runs && p1->m_errors.size() == 0 && !p1->m_block.IsEmpty()) {
                             v8::HandleScope handle_scope(isolate->m_isolate);
 
                             td->m_running = p1;
@@ -741,7 +768,7 @@ public:
                             str.append(buf);
                             str.append(p1->m_title);
                         } else {
-                            if (p1->m_level < p->m_run_level || p1->m_runtime_skip) {
+                            if (!case_runs || p1->m_runtime_skip) {
                                 // ctx.skip() called from the body counts as a
                                 // skipped case; unlike an options-level skip it
                                 // has already run beforeEach and its body, so
@@ -777,8 +804,8 @@ public:
 
                     // node's spec reporter prints the diagnostics collected by
                     // ctx.diagnostic()/ctx.log() right under the test line.
-                    bool printed = !p1->m_status
-                        || mode > console_base::C_ERROR || p1->m_level >= p->m_run_level;
+                    bool printed = !p1->m_status || mode > console_base::C_ERROR
+                        || case_runs;
 
                     if (!p1->m_status)
                         test_log(console_base::C_INFO, logger::error() + str + COLOR_RESET);
@@ -806,7 +833,7 @@ public:
                     // already run, so Node still runs afterEach (wasSkippedBeforeRun
                     // is only true for a declarative skip, which never starts the
                     // case at all).
-                    if (p1->m_level >= p->m_run_level && !before_failed) {
+                    if (case_runs && !before_failed) {
                         v8::HandleScope handle_scope(isolate->m_isolate);
 
                         bool hook_failed = false;
@@ -1105,6 +1132,10 @@ private:
 
     // --test-skip-pattern chain rule: a title on the root chain matched.
     bool m_chain_skipped = false;
+
+    // Registered with __fibjs_test_force_visible set (a test file failed to
+    // load): never filtered, never shadowed by the run level, always reported.
+    bool m_force_visible = false;
 
     // todo inherited from an enclosing describe.todo/suite.todo (Node parity).
     bool m_todo_inherited = false;

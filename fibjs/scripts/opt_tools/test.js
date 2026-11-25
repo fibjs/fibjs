@@ -261,6 +261,13 @@ const SKIP_PATTERNS_KEY = '__fibjs_test_skip_patterns';
 // the engine reads it for context.filePath (node exposes the entry file).
 const TEST_ENTRY_FILE_KEY = '__fibjs_test_entry_file';
 
+// Key on the global that marks the next case as unfilterable (the engine reads
+// it when the case is registered). Used for the synthetic case that reports a
+// test file which failed to load: --test-name-pattern / --test-skip-pattern
+// select tests inside a file, so they must never hide a load failure and turn
+// the run into a green zero-test result.
+const FORCE_VISIBLE_KEY = '__fibjs_test_force_visible';
+
 // Key on the global holding what the coverage writer must leave out of a report
 // (lcov.cpp reads it when it writes at exit): the files this run was handed, and
 // the patterns a test file is recognised by. Non-enumerable.
@@ -469,6 +476,26 @@ Run \`fibjs --help\` for the global options.
 `);
 }
 
+// Register the synthetic case that reports a test file which failed to load.
+// The case is forced visible: --test-name-pattern / --test-skip-pattern select
+// tests inside a file, so they must never hide the load failure and turn the
+// run into a green zero-test result (node keeps the file failure regardless of
+// the filters). The run then reports the case as failed and exits with code 1.
+function registerLoadFailure(file, error) {
+    Object.defineProperty(globalThis, FORCE_VISIBLE_KEY, {
+        configurable: true,
+        value: true
+    });
+
+    try {
+        test.it(`${file} failed to load`, () => {
+            throw error;
+        });
+    } finally {
+        delete globalThis[FORCE_VISIBLE_KEY];
+    }
+}
+
 function main() {
     if (!isTestRunnerEntry)
         return;
@@ -564,11 +591,7 @@ function main() {
         try {
             runFile(f);
         } catch (e) {
-            // The file failed to load: register a failing case so the run is
-            // reported as failed and the process exits with code 1.
-            test.it(`${f} failed to load`, () => {
-                throw e;
-            });
+            registerLoadFailure(f, e);
         }
     }
 }

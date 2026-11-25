@@ -84,7 +84,9 @@
       status aggregates the subtree (`skipped` for a pruned suite, `cancelled`
       for cases stopped by a failing before hook), so an unstarted or interrupted
       suite is no longer reported as passed. Filtered runs omit non-matching
-      nodes instead of leaving null placeholders in `tests`. Each node now
+      nodes instead of leaving null placeholders in `tests`, and a file that
+      fails to load is always reported as a failing case, so a filtered run
+      cannot turn a load error into a green zero-test result. Each node now
       records its defining file, which also fixes `context.filePath` when
       `--test` loads several files, and a case or suite shares one context
       object between its body and hooks.
