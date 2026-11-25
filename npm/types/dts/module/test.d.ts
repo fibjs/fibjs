@@ -36,12 +36,15 @@
  *    one-parameter `(done)` body receives the context instead, so calling it fails the case. The
  *    runner emits one `warning: test '...' looks like the retired callback style` line for the
  *    first such body it registers (the parameter name is the only hint: dispatch follows the
- *    count, never names). A plain function that returns a promise is not awaited, so async bodies
- *    must be declared `async`.
+ *    count, never names). The value a plain function returns is resolved like `await` does: a
+ *    promise or any thenable is waited for on a fiber, so a non-async body may return a promise
+ *    instead of being declared `async`. Hooks follow the same rule.
  *  - **Context object**: a body (and a suite body, and a hook) is called with a context carrying
  *    `name`, `fullName` (`'suite > case'`), `filePath`, `passed`, `diagnostic()`, `log()` and the
  *    shared `assert` module; a case context additionally offers `skip()` and `todo()`, which
- *    reclassify the running case (a runtime skip also suppresses `afterEach`).
+ *    reclassify the running case. A runtime `skip()` is counted as skipped but does not suppress
+ *    the per-case hooks: `beforeEach` has already run, and `afterEach` still runs. Only a
+ *    declarative `skip` suppresses both, because the case never starts.
  *    `diagnostic()` and `log()` queue a line that is printed under the case. Subtests, per-case
  *    plans, mocks and snapshots are not modelled, so `test()`, `plan()`, `mock()` and `waitFor()`
  *    are absent.
@@ -173,7 +176,7 @@ declare module 'test' {
      *      may throw to fail the case, may be an async function (fibjs waits for the returned
      *      promise), or may take a callback as its second parameter: a body with two or more
      *      parameters is called as `(context, done)`, anything else as `(context)`. A plain function
-     *      returning a promise is not awaited.
+     *      that returns a promise or thenable is awaited exactly like an async body.
      *
      *      Example — the module and its it alias are the same definition function:
      *      ```JavaScript
@@ -300,8 +303,9 @@ declare module 'test' {
          *      the skipped total instead of passing or failing
          *
          *      A body is required: `skip(name)` without one throws error 20002. The options form
-         *      `{ skip: true }` and `it.skip` do the same thing; a non-literal value such as
-         *      `{ skip: 'reason' }` is ignored and the case runs normally.
+         *      `{ skip: true }` and `it.skip` do the same thing; `skip` counts as set when its value is
+         *      neither `undefined` nor `false`, so `{ skip: 'reason' }` also marks the case (the reason
+         *      text is not printed).
          *
          *      Example — skipped cases leave the run green:
          *      ```JavaScript
@@ -355,14 +359,14 @@ declare module 'test' {
         function only(name: string, block: ()=>void): void;
 
         /**
-         * @description Defines a planned case; it is counted in the todo total and its body is not
-         *      executed
+         * @description Defines a planned case; it is counted in the todo total while its body still
+         *      runs, and only the outcome is classified as todo
          *
          *      The one-argument form declares a planned case without a body. `skip: true` takes
          *      precedence over the todo level in the options form.
          *
          *      @param name the case title shown in the report
-         *      @param block the case body, which is never executed
+         *      @param block the case body; it runs, and a throw is reported but does not fail the run
          *
          */
         function todo(name: string, block: ()=>void): void;
@@ -371,12 +375,12 @@ declare module 'test' {
          * @description Defines a planned case with an options object; `todo` is the default level
          *      and `skip: true` takes precedence, while `only: true` selects the case
          *
-         *      The body is not executed for a todo case; see the two-argument form for the shared
+         *      The body still runs for a todo case; see the two-argument form for the shared
          *      semantics.
          *
          *      @param name the case title shown in the report
          *      @param options the case options: { skip, todo, only }
-         *      @param block the case body, which is never executed
+         *      @param block the case body; it runs, and a throw is reported but does not fail the run
          *
          */
         function todo(name: string, options: FIBJS.GeneralObject, block: ()=>void): void;

@@ -152,6 +152,13 @@
       a routine `stop()` printed an unhandled error for every server without an
       `error` listener, and the message could surface long after the call.
       A server that is no longer running now finishes the loop quietly.
+    * test - a body, suite body or hook that returns a promise (or any
+      thenable) is now awaited, so a plain function returning a promise
+      behaves like an `async` body: a late rejection fails its case instead of
+      passing in 0ms and surfacing as asynchronous activity after the summary.
+      `ctx.skip()` also keeps the per-case hooks, matching Node: the case has
+      started, `beforeEach` already ran and `afterEach` still runs; only a
+      declarative `skip` suppresses them.
 
 ## 2024-02-07, Version 0.37.0
 * **feature** :
