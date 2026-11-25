@@ -17,6 +17,7 @@ const FIXTURE = path.join(FIXTURES_DIR, 'name_pattern_fixture.js');
 const HOOKS_FIXTURE = path.join(FIXTURES_DIR, 'hooks_fixture.js');
 const SKIP_TODO_FIXTURE = path.join(FIXTURES_DIR, 'skip_todo_fixture.js');
 const ONLY_FIXTURE = path.join(FIXTURES_DIR, 'only_fixture.js');
+const LOAD_FAILURE_FIXTURE = path.join(FIXTURES_DIR, 'load_failure_fixture.js');
 
 function runFiles(files, patterns, extraEnv) {
     const args = ['--test'];
@@ -533,5 +534,72 @@ describe('--test-skip-pattern', { skip: !isFibjs }, () => {
         const r = runSkip([FULL_NAME_FIXTURE], ['[a']);
         assert.notEqual(r.code, 0);
         assert.ok((r.stderr + r.stdout).indexOf('--test-skip-pattern must be a valid regular expression') >= 0);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// a test file that fails to load must never be filtered out. Node reports the
+// file itself as failed regardless of --test-name-pattern / --test-skip-pattern
+// (measured with node v23.9); fibjs used to prune the runner's synthetic
+// '<file> failed to load' case, reporting a green 0-test run and dropping the
+// error, the failed status and the exit code.
+// ---------------------------------------------------------------------------
+
+function runLoadFailure(args) {
+    const r = child_process.spawnSync(process.execPath, ['--test'].concat(args), {
+        encoding: 'utf8',
+        env: {
+            ...process.env,
+            NAME_PATTERN_FIXTURE: '1',
+            LOAD_FAILURE_FIXTURE: '1'
+        }
+    });
+    return { code: r.status, stdout: r.stdout || '', stderr: r.stderr || '' };
+}
+
+// The run must be red with the error printed; when a filter matches nothing
+// this is exactly the regression (it used to report 0 tests / passed / exit 0).
+function assertLoadFailure(r) {
+    assert.notEqual(r.code, 0);
+    assert.equal(summary(r.stdout).completed, 1);
+    assert.ok(r.stdout.indexOf('failed to load') >= 0);
+    assert.ok((r.stdout + r.stderr).indexOf('load failure fixture: boom') >= 0);
+}
+
+describe('a file failing to load is never filtered', { skip: !isFibjs }, () => {
+    it('unfiltered control: reported as a failed run', () => {
+        assertLoadFailure(runLoadFailure([LOAD_FAILURE_FIXTURE]));
+    });
+
+    it('a name pattern matching nothing still reports the load failure', () => {
+        assertLoadFailure(runLoadFailure(['--test-name-pattern=signin-signout', LOAD_FAILURE_FIXTURE]));
+    });
+
+    it('a skip pattern matching the file name does not hide it', () => {
+        assertLoadFailure(runLoadFailure(['--test-skip-pattern=load_failure_fixture', LOAD_FAILURE_FIXTURE]));
+    });
+
+    it('matching cases in another file still run alongside the failure', () => {
+        const r = runLoadFailure(['--test-name-pattern=a1', FIXTURE, LOAD_FAILURE_FIXTURE]);
+        assert.notEqual(r.code, 0);
+        const s = summary(r.stdout);
+        assert.equal(s.completed, 2);
+        assert.equal(s.passed, 1);
+        assert.ok(r.stdout.indexOf('failed to load') >= 0);
+    });
+
+    it('the json report carries the failed case', () => {
+        const r = runLoadFailure(['--test-reporter=json',
+            '--test-name-pattern=signin-signout', LOAD_FAILURE_FIXTURE]);
+        assert.notEqual(r.code, 0);
+
+        const report = JSON.parse(r.stdout);
+        assert.equal(report.status, 'failed');
+        assert.equal(report.total, 1);
+        assert.equal(report.tests.length, 1);
+        assert.equal(report.tests[0].status, 'failed');
+        assert.ok(report.tests[0].title.indexOf('failed to load') >= 0);
+        assert.ok(report.tests[0].trace.indexOf('load failure fixture: boom') >= 0);
+        assert.equal(report.tests[0].file, LOAD_FAILURE_FIXTURE);
     });
 });
