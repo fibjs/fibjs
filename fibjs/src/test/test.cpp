@@ -41,6 +41,16 @@ static void warn_legacy_callback(v8::Local<v8::Function> func, const exlib::stri
 // test ended" and fails the run.
 static bool s_test_run_finished = false;
 
+// When the built-in JSON reporter writes to stdout, the human-readable spec
+// lines are suppressed so the document is the runner's only stdout output.
+static bool s_spec_silent = false;
+
+static void test_log(int32_t priority, exlib::string msg)
+{
+    if (!s_spec_silent)
+        outLog(priority, msg);
+}
+
 static int32_t s_slow = 75;
 
 class TestData {
@@ -128,6 +138,30 @@ static bool call_and_await(Isolate* isolate, v8::Local<v8::Function> func,
 
 static v8::Local<v8::Object> make_case_context(_case* c, int32_t kind);
 
+// Entry file of the test currently being registered. opt_tools/test.js
+// publishes it per file while loading; __filename is the fallback for a test
+// script run directly. The value is captured on every node because the whole
+// tree runs after all files have been loaded (the global would otherwise hold
+// the last file).
+static exlib::string current_entry_file()
+{
+    Isolate* isolate = Isolate::current();
+    v8::Local<v8::Context> context = isolate->context();
+    v8::Local<v8::Object> global = context->Global();
+    const char* keys[2] = { "__fibjs_test_entry_file", "__filename" };
+
+    for (int32_t i = 0; i < 2; i++) {
+        v8::Local<v8::Value> v = global->Get(context, isolate->NewString(keys[i]))
+                                     .FromMaybe(v8::Local<v8::Value>());
+        if (!v.IsEmpty() && v->IsString())
+            return isolate->toString(v);
+    }
+
+    // A test script run directly: the sandbox knows the entry file even though
+    // neither global is set.
+    return isolate->m_fname;
+}
+
 class _case : public obj_base {
     _case(exlib::string name = "", int32_t level = TEST_TODO)
         : m_level(level)
@@ -142,6 +176,7 @@ class _case : public obj_base {
 
         m_block.Reset();
         m_describe_block.Reset();
+        m_ctx.Reset();
         for (i = 0; i < 4; i++)
             for (j = 0; j < (int32_t)m_hooks[i].size(); j++)
                 m_hooks[i][j].Reset();
@@ -162,6 +197,7 @@ public:
 
     exlib::string context_name() { return m_title; }
     exlib::string context_full_name() { return m_display_name.empty() ? m_title : m_display_name; }
+    exlib::string context_file() { return m_file; }
     bool context_passed() { return m_status; }
 
     void add_diagnostic(exlib::string msg) { m_diagnostics.append(msg); }
@@ -220,6 +256,7 @@ public:
 
         _case* p = new _case(name, level);
         p->m_is_suite = true;
+        p->m_file = now->m_file.empty() ? current_entry_file() : now->m_file;
         p->m_describe_block.Reset(Isolate::current()->m_isolate, block);
         now->append(p);
 
@@ -281,6 +318,7 @@ public:
             return result_t::invalid_call();
 
         _case* p = new _case(name, level);
+        p->m_file = now->m_file.empty() ? current_entry_file() : now->m_file;
         p->m_block.Reset(Isolate::current()->m_isolate, block);
 
         now->append(p);
@@ -453,6 +491,10 @@ public:
                 if (p->m_run_level != TEST_NONE) {
                     v8::HandleScope handle_scope(isolate->m_isolate);
 
+                    // One suite context shared by every before/after hook, as
+                    // Node hands the same SuiteContext to both.
+                    p->m_ctx.Reset(isolate->m_isolate, make_case_context(p, CTX_SUITE));
+
                     // Skip this suite's before hooks when a parent before/describe block failed
                     bool parent_failed = false;
                     for (j = 0; j < (int32_t)stack.size() - 1; j++)
@@ -465,7 +507,7 @@ public:
                         for (i = 0; i < (int32_t)p->m_hooks[HOOK_BEFORE].size(); i++) {
                             TryCatch try_catch;
                             v8::Local<v8::Function> func = p->m_hooks[HOOK_BEFORE][i].Get(isolate->m_isolate);
-                            v8::Local<v8::Value> ctx_arg = make_case_context(p, CTX_SUITE);
+                            v8::Local<v8::Value> ctx_arg = p->m_ctx.Get(isolate->m_isolate);
                             call_and_await(isolate, func, v8::Object::New(isolate->m_isolate), 1, &ctx_arg);
                             if (try_catch.HasCaught()) {
                                 // before failed: mark the suite failed, all its tests fail,
@@ -565,6 +607,13 @@ public:
                     // as cancelled (they never start) rather than as failures.
                     p1->m_cancelled = before_failed;
 
+                    // One context per case execution, shared by beforeEach, the
+                    // body and afterEach; Node hands the same TestContext to all
+                    // of them, so state stored in a hook survives to its pair.
+                    v8::Local<v8::Value> case_ctx;
+                    if (p1->m_level >= p->m_run_level && !before_failed)
+                        case_ctx = make_case_context(p1, CTX_TEST);
+
                     if (p1->m_level >= p->m_run_level) {
                         v8::HandleScope handle_scope(isolate->m_isolate);
 
@@ -576,8 +625,7 @@ public:
                                 for (i = 0; i < (int32_t)p2->m_hooks[HOOK_BEFORECASE].size(); i++) {
                                     TryCatch try_catch;
                                     v8::Local<v8::Function> func = p2->m_hooks[HOOK_BEFORECASE][i].Get(isolate->m_isolate);
-                                    v8::Local<v8::Value> ctx_arg = make_case_context(p1, CTX_TEST);
-                                    call_and_await(isolate, func, v8::Object::New(isolate->m_isolate), 1, &ctx_arg);
+                                    call_and_await(isolate, func, v8::Object::New(isolate->m_isolate), 1, &case_ctx);
                                     if (try_catch.HasCaught()) {
                                         // beforeEach failed: current test fails and its block
                                         // is skipped, subsequent tests keep running (aligned with Node)
@@ -608,9 +656,8 @@ public:
                             td->m_running = p1;
 
                             v8::Local<v8::Function> func = p1->m_block.Get(isolate->m_isolate);
-                            v8::Local<v8::Value> ctx_arg = make_case_context(p1, CTX_TEST);
                             v8::Local<v8::Object> this_arg = v8::Object::New(isolate->m_isolate);
-                            call_and_await(isolate, func, this_arg, 1, &ctx_arg);
+                            call_and_await(isolate, func, this_arg, 1, &case_ctx);
                             if (try_catch.HasCaught()) {
                                 v8::Local<v8::Value> exp = try_catch.Exception();
                                 if (exp->IsFunction()) {
@@ -618,7 +665,7 @@ public:
                                     // mean "run this as the body" (kept for compatibility)
                                     func = exp.As<v8::Function>();
                                     try_catch.Reset();
-                                    call_and_await(isolate, func, this_arg, 1, &ctx_arg);
+                                    call_and_await(isolate, func, this_arg, 1, &case_ctx);
                                 }
                             }
 
@@ -636,6 +683,8 @@ public:
 
                         v8::Local<v8::Object> val = v8::Object::New(isolate->m_isolate);
                         val->Set(_context, isolate->NewString("title"), isolate->NewString(p1->m_title)).IsJust();
+                        if (!p1->m_file.empty())
+                            val->Set(_context, isolate->NewString("file"), isolate->NewString(p1->m_file)).IsJust();
 
                         p->m_total++;
                         if (is_todo || p1->m_runtime_todo) {
@@ -732,16 +781,16 @@ public:
                         || mode > console_base::C_ERROR || p1->m_level >= p->m_run_level;
 
                     if (!p1->m_status)
-                        outLog(console_base::C_INFO, logger::error() + str + COLOR_RESET);
+                        test_log(console_base::C_INFO, logger::error() + str + COLOR_RESET);
                     else if (printed)
-                        outLog(console_base::C_INFO, str);
+                        test_log(console_base::C_INFO, str);
 
                     if (printed)
                         for (i = 0; i < (int32_t)p1->m_diagnostics.size(); i++) {
                             exlib::string dstr(stack.size() * 2, ' ');
                             dstr.append("\xe2\x84\xb9 "); // U+2139 INFORMATION SOURCE
                             dstr.append(p1->m_diagnostics[i]);
-                            outLog(console_base::C_INFO, dstr);
+                            test_log(console_base::C_INFO, dstr);
                         }
 
                     // afterEach runs AFTER the case is reported, as in Node: the
@@ -766,8 +815,7 @@ public:
                             for (i = 0; i < (int32_t)p2->m_hooks[HOOK_AFTERCASE].size(); i++) {
                                 TryCatch try_catch;
                                 v8::Local<v8::Function> func = p2->m_hooks[HOOK_AFTERCASE][i].Get(isolate->m_isolate);
-                                v8::Local<v8::Value> ctx_arg = make_case_context(p1, CTX_TEST);
-                                call_and_await(isolate, func, v8::Object::New(isolate->m_isolate), 1, &ctx_arg);
+                                call_and_await(isolate, func, v8::Object::New(isolate->m_isolate), 1, &case_ctx);
                                 if (try_catch.HasCaught()) {
                                     // afterEach failed: mark current test failed (even if it
                                     // passed), stop the remaining hooks (aligned with Node)
@@ -805,7 +853,7 @@ public:
                                         val->Set(_context, isolate->NewString("status"), isolate->NewString("failed")).IsJust();
                                         val->Set(_context, isolate->NewString("trace"), isolate->NewString(err)).IsJust();
 
-                                        outLog(console_base::C_ERROR, logger::error() + str + " [afterEach failed]" + COLOR_RESET);
+                                        test_log(console_base::C_ERROR, logger::error() + str + " [afterEach failed]" + COLOR_RESET);
                                     }
                                     break;
                                 }
@@ -828,8 +876,8 @@ public:
                         str.append(COLOR_RESET);
 
                         if (stack.size() == 1)
-                            outLog(console_base::C_INFO, "");
-                        outLog(console_base::C_INFO, str);
+                            test_log(console_base::C_INFO, "");
+                        test_log(console_base::C_INFO, str);
                     }
 
                     stack.append(p1);
@@ -858,7 +906,7 @@ public:
                     for (i = 0; i < (int32_t)p->m_hooks[HOOK_AFTER].size(); i++) {
                         TryCatch try_catch;
                         v8::Local<v8::Function> func = p->m_hooks[HOOK_AFTER][i].Get(isolate->m_isolate);
-                        v8::Local<v8::Value> ctx_arg = make_case_context(p, CTX_SUITE);
+                        v8::Local<v8::Value> ctx_arg = p->m_ctx.Get(isolate->m_isolate);
                         call_and_await(isolate, func, v8::Object::New(isolate->m_isolate), 1, &ctx_arg);
                         if (try_catch.HasCaught()) {
                             // after failed：与 Node 一致 —— 子测试保持各自状态（已经打印过的 √
@@ -874,7 +922,7 @@ public:
                             exlib::string errline(stack.size() * 2, ' ');
                             errline.append("[after failed] ");
                             errline.append(p->m_title);
-                            outLog(console_base::C_ERROR, logger::error() + errline + COLOR_RESET);
+                            test_log(console_base::C_ERROR, logger::error() + errline + COLOR_RESET);
 
                             if (mode > console_base::C_ERROR)
                                 errorLog(err);
@@ -904,8 +952,19 @@ public:
 
                 if (stack.size() > 1)
                     p->m_retVal->Set(_context, isolate->NewString("title"), isolate->NewString(p->m_title)).IsJust();
+                if (!p->m_file.empty())
+                    p->m_retVal->Set(_context, isolate->NewString("file"), isolate->NewString(p->m_file)).IsJust();
 
                 p->m_retVal->Set(_context, isolate->NewString("status"), p->m_status ? isolate->NewString("passed") : isolate->NewString("failed")).IsJust();
+
+                // A suite failed by a before hook or a describe body carries
+                // the reason here; after-hook failures already set the trace.
+                if (!p->m_status) {
+                    v8::Local<v8::Value> trace = p->m_retVal->Get(_context, isolate->NewString("trace"))
+                                                     .FromMaybe(v8::Local<v8::Value>());
+                    if ((trace.IsEmpty() || trace->IsUndefined()) && p->m_errors.size())
+                        p->m_retVal->Set(_context, isolate->NewString("trace"), isolate->NewString(p->m_errors.str())).IsJust();
+                }
 
                 p->m_retVal->Set(_context, isolate->NewString("total"), v8::Number::New(isolate->m_isolate, p->m_total)).IsJust();
 
@@ -943,44 +1002,46 @@ public:
             }
         }
 
-        outLog(console_base::C_INFO, "");
+        td->m_root->m_retVal->Set(_context, isolate->NewString("title"), isolate->NewString("<root>")).IsJust();
+
+        test_log(console_base::C_INFO, "");
 
         snprintf(buf, sizeof(buf),
             (COLOR_BOLD + "    %d tests completed" + COLOR_RESET + " (%dms)").c_str(),
             td->m_root->m_total, (int32_t)td->m_root->m_duration);
-        outLog(console_base::C_INFO, buf);
+        test_log(console_base::C_INFO, buf);
 
         if (td->m_root->m_pass) {
             snprintf(buf, sizeof(buf),
                 (logger::notice() + "  \xe2\x88\x9a %d tests passed" + COLOR_RESET).c_str(), td->m_root->m_pass);
-            outLog(console_base::C_INFO, buf);
+            test_log(console_base::C_INFO, buf);
         }
 
         if (td->m_root->m_fail) {
             snprintf(buf, sizeof(buf), (logger::error() + "  \xc3\x97 %d tests failed" + COLOR_RESET).c_str(), td->m_root->m_fail);
-            outLog(console_base::C_INFO, buf);
+            test_log(console_base::C_INFO, buf);
         }
 
         if (td->m_root->m_todo) {
             snprintf(buf, sizeof(buf), (COLOR_CYAN + "  \xe2\x98\x90 %d todo tests" + COLOR_RESET).c_str(), td->m_root->m_todo);
-            outLog(console_base::C_INFO, buf);
+            test_log(console_base::C_INFO, buf);
         }
 
         if (td->m_root->m_skip) {
             snprintf(buf, sizeof(buf), (COLOR_GRAY + "  \xe2\x97\x8b %d tests skipped" + COLOR_RESET).c_str(), td->m_root->m_skip);
-            outLog(console_base::C_INFO, buf);
+            test_log(console_base::C_INFO, buf);
         }
 
         if (td->m_root->m_cancel) {
             snprintf(buf, sizeof(buf), (COLOR_GRAY + "  \xe2\x88\x92 %d tests cancelled" + COLOR_RESET).c_str(), td->m_root->m_cancel);
-            outLog(console_base::C_INFO, buf);
+            test_log(console_base::C_INFO, buf);
         }
 
-        outLog(console_base::C_INFO, "");
+        test_log(console_base::C_INFO, "");
 
         for (i = 0; i < (int32_t)msgs.size(); i++) {
-            outLog(console_base::C_INFO, names[i]);
-            outLog(console_base::C_INFO, logger::error() + msgs[i] + COLOR_RESET);
+            test_log(console_base::C_INFO, names[i]);
+            test_log(console_base::C_INFO, logger::error() + msgs[i] + COLOR_RESET);
         }
 
         retVal = td->m_root->m_retVal;
@@ -1070,8 +1131,16 @@ private:
     v8::Local<v8::Object> m_retVal;
     v8::Local<v8::Array> m_retVal_tests;
 
+    // Entry file captured when the node was registered (opt_tools/test.js
+    // loads several files before the deferred tree runs). Also reported as
+    // context.filePath and as "file" in the JSON report.
+    exlib::string m_file;
+
     v8::Global<v8::Function> m_block;
     v8::Global<v8::Function> m_describe_block;
+    // Suite context shared by before/after hooks (a case gets its own shared
+    // context, created per execution instead of stored here).
+    v8::Global<v8::Object> m_ctx;
     int32_t m_level;
     int32_t m_run_level;
     QuickArray<obj_ptr<_case>> m_subs;
@@ -1151,6 +1220,13 @@ static void ctx_passed_getter(v8::Local<v8::Name> name, const v8::PropertyCallba
 static void ctx_file_getter(v8::Local<v8::Name> name, const v8::PropertyCallbackInfo<v8::Value>& info)
 {
     Isolate* isolate = Isolate::current(info);
+    exlib::string file = ctx_case(info.Data())->context_file();
+
+    if (!file.empty()) {
+        info.GetReturnValue().Set(isolate->NewString(file));
+        return;
+    }
+
     v8::Local<v8::Context> context = isolate->context();
     v8::Local<v8::Value> v = context->Global()
                                  ->Get(context, isolate->NewString("__fibjs_test_entry_file"))
@@ -1329,7 +1405,8 @@ static void warn_legacy_callback(v8::Local<v8::Function> func, const exlib::stri
     s_legacy_callback_warned = true;
 
     // No trailing newline: the logger adds one (and the reset after it).
-    outLog(console_base::C_WARN, "warning: test '" + name + "' looks like the retired callback style (parameter named '"
+    // A warning goes to stderr so --test-reporter=json can keep stdout clean.
+    errorLog("warning: test '" + name + "' looks like the retired callback style (parameter named '"
             + param + "'), but a single parameter now receives the test context. Write (ctx, done) => {} if the case needs a done callback.");
 }
 
@@ -1770,10 +1847,36 @@ void run_test(int32_t mode)
             }
         }
 
+        v8::Local<v8::Object> g = _context->Global();
+        {
+            v8::Local<v8::Value> v = g->Get(_context, isolate->NewString("__fibjs_test_spec_silent"))
+                                        .FromMaybe(v8::Local<v8::Value>());
+            s_spec_silent = !v.IsEmpty() && v->IsBoolean() && v->BooleanValue(isolate->m_isolate);
+        }
+
         v8::Local<v8::Object> ret;
         result_t hr = _case::run(mode, ret);
         if (hr.failed()) {
             ThrowResult(hr);
+        }
+
+        // opt_tools/test.js installs this hook for --test-reporter=json and
+        // receives the same result tree the spec reporter used. A failure to
+        // write the report fails the run.
+        {
+            v8::Local<v8::Value> cb = g->Get(_context, isolate->NewString("__fibjs_test_on_result"))
+                                          .FromMaybe(v8::Local<v8::Value>());
+            if (!cb.IsEmpty() && cb->IsFunction()) {
+                TryCatch try_catch;
+                v8::Local<v8::Value> arg = ret;
+                cb.As<v8::Function>()
+                    ->Call(_context, g, 1, &arg)
+                    .IsEmpty();
+                if (try_catch.HasCaught()) {
+                    errorLog("[test-reporter] " + GetException(try_catch, result_t(), false, true));
+                    process_base::set_exitCode(1);
+                }
+            }
         }
 
         // Arm the watchdog after the run: if the process does not exit within

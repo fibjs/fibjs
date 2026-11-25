@@ -22,10 +22,11 @@
  *                                   rules); takes precedence over the name
  *                                   pattern; repeatable (OR)
  *   Both accept a regular expression literal with flags: /re/i
- *   --test-reporter=<name>           only the default spec-like reporter
- *                                         is supported; other names are
- *                                         ignored with a warning
- *   --test-reporter-destination=<dest>    only stdout is supported
+ *   --test-reporter=<name>           'spec' (default) or 'json'; json writes
+ *                                         the result tree as one JSON document
+ *   --test-reporter-destination=<dest>    stdout (default), stderr or a file
+ *                                         path; a file destination keeps the
+ *                                         spec reporter on stdout
  *   --test-concurrency=<n>                accepted, execution is sequential
  *   --test-timeout=<ms>                   (not supported yet, ignored with a
  *                                         warning)
@@ -452,9 +453,15 @@ Options:
                               (repeatable; takes precedence over
                               --test-name-pattern). Both options also accept a
                               regular expression literal with flags: /re/i
-  --test-reporter=<name>      reporter name (only 'spec' is supported)
+  --test-reporter=<name>      reporter: 'spec' (default) or 'json'. The json
+                              reporter writes the whole result tree (per-case
+                              status passed/failed/skipped/todo/cancelled,
+                              file, duration, trace and nested suites)
   --test-reporter-destination=<dest>
-                              reporter destination (only 'stdout')
+                              destination: 'stdout' (default), 'stderr' or a
+                              file path. A file keeps the spec output on
+                              stdout; 'stdout' suppresses the spec output so
+                              the document is the only runner output
   --test-concurrency=<n>      accepted for compatibility; files run sequentially
   --test-isolation=<mode>     accepted for compatibility; files run in-process
 
@@ -469,15 +476,44 @@ function main() {
     const argv = process.argv.slice(1);
     const opts = parseArgs(argv);
 
-    if (opts.reporter !== 'spec') {
+    if (opts.reporter === 'json') {
+        const destination = opts.reporterDestination;
+        const target = (destination === 'stdout' || destination === 'stderr')
+            ? destination
+            : path.resolve(process.cwd(), destination);
+
+        // test.cpp calls this once with the result tree after the run.
+        Object.defineProperty(globalThis, '__fibjs_test_on_result', {
+            configurable: true,
+            value: function (result) {
+                const text = JSON.stringify(result, null, 2);
+
+                if (target === 'stdout')
+                    console.log(text);
+                else if (target === 'stderr')
+                    console.error(text);
+                else
+                    fs.writeFile(target, text + '\n');
+            }
+        });
+
+        // A document on stdout must not be interleaved with the human lines;
+        // a file destination leaves the spec output in place.
+        if (target === 'stdout') {
+            Object.defineProperty(globalThis, '__fibjs_test_spec_silent', {
+                configurable: true,
+                value: true
+            });
+        }
+    } else if (opts.reporter !== 'spec') {
         opts.warnings.push(
             `--test-reporter=${opts.reporter} is not supported; using the default reporter`
         );
     }
 
-    if (opts.reporterDestination !== 'stdout') {
+    if (opts.reporter === 'spec' && opts.reporterDestination !== 'stdout') {
         opts.warnings.push(
-            `--test-reporter-destination=${opts.reporterDestination} is not supported; using stdout`
+            `--test-reporter-destination=${opts.reporterDestination} is ignored for the spec reporter; using stdout`
         );
     }
 
