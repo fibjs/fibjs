@@ -80,10 +80,13 @@
       process/util/os, Redis, LevelDB, SandBox, WASI and RTC.
     * test - `--test-reporter=json` writes the result tree as one JSON document
       (per-case `status`, `file`, `duration`, `trace` and nested suites) to
-      stdout, stderr or a file; a file destination keeps the spec output. Each
-      node now records its defining file, which also fixes `context.filePath`
-      when `--test` loads several files, and a case or suite shares one context
-      object between its body and hooks.
+      stdout, stderr or a file; a file destination keeps the spec output. Suite
+      status aggregates the subtree (`skipped` for a pruned suite, `cancelled`
+      for cases stopped by a failing before hook), so an unstarted or interrupted
+      suite is no longer reported as passed. Each node now records its defining
+      file, which also fixes `context.filePath` when `--test` loads several
+      files, and a case or suite shares one context object between its body and
+      hooks.
 * **breaking** :
     * mq - a JavaScript handler function's return value is ignored; it is no
       longer converted to the next handler.

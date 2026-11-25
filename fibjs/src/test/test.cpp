@@ -955,7 +955,14 @@ public:
                 if (!p->m_file.empty())
                     p->m_retVal->Set(_context, isolate->NewString("file"), isolate->NewString(p->m_file)).IsJust();
 
-                p->m_retVal->Set(_context, isolate->NewString("status"), p->m_status ? isolate->NewString("passed") : isolate->NewString("failed")).IsJust();
+                // A pruned suite (declarative skip or shadowed by only) never
+                // started; report it as skipped even though its totals are zero.
+                // Cancelled cases do not flip m_status, so aggregate them into a
+                // "cancelled" status when nothing failed.
+                const char* status = !p->m_status ? "failed"
+                    : (p->m_run_level == TEST_NONE ? "skipped"
+                    : (p->m_cancel ? "cancelled" : "passed"));
+                p->m_retVal->Set(_context, isolate->NewString("status"), isolate->NewString(status)).IsJust();
 
                 // A suite failed by a before hook or a describe body carries
                 // the reason here; after-hook failures already set the trace.
