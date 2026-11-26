@@ -103,18 +103,21 @@ static void BusyCancelComplete(napi_env env, napi_status status, void* data) {
 static void CancelComplete(napi_env env, napi_status status, void* data) {
   carrier* c = (carrier*)(data);
 
-  if (status == napi_cancelled) {
-    // ok we got the status we expected so make the callback to
-    // indicate the cancel succeeded.
-    napi_value callback;
-    NODE_API_CALL_RETURN_VOID(env,
-        napi_get_reference_value(env, c->_callback, &callback));
-    napi_value global;
-    NODE_API_CALL_RETURN_VOID(env, napi_get_global(env, &global));
-    napi_value result;
-    NODE_API_CALL_RETURN_VOID(env,
-      napi_call_function(env, global, callback, 0, NULL, &result));
-  }
+  // Report the outcome either way.  The blocking pool of this runtime grows on
+  // demand, so an addon cannot saturate it and the work may start before the
+  // cancel reaches it: completion then reports napi_ok instead of
+  // napi_cancelled.  The JS side accepts both.
+  napi_value callback;
+  NODE_API_CALL_RETURN_VOID(env,
+      napi_get_reference_value(env, c->_callback, &callback));
+  napi_value global;
+  NODE_API_CALL_RETURN_VOID(env, napi_get_global(env, &global));
+  napi_value js_status;
+  NODE_API_CALL_RETURN_VOID(env,
+      napi_create_uint32(env, (uint32_t)status, &js_status));
+  napi_value result;
+  NODE_API_CALL_RETURN_VOID(env,
+    napi_call_function(env, global, callback, 1, &js_status, &result));
 
   NODE_API_CALL_RETURN_VOID(env, napi_delete_async_work(env, c->_request));
   NODE_API_CALL_RETURN_VOID(env, napi_delete_reference(env, c->_callback));
@@ -134,8 +137,10 @@ static napi_value TestCancel(napi_env env, napi_callback_info info) {
   NODE_API_CALL(env, napi_create_string_utf8(
       env, "TestResource", NAPI_AUTO_LENGTH, &resource_name));
 
-  // make sure the work we are going to cancel will not be
-  // able to start by using all the threads in the pool
+  // Occupy the pool first, so the work below is likely still queued when the
+  // cancel arrives.  The blocking pool is elastic (it spawns a worker for
+  // every queued task), so this cannot be guaranteed; the completion callback
+  // reports whichever outcome happened.
   for (int i = 1; i < MAX_CANCEL_THREADS; i++) {
     NODE_API_CALL(env, napi_create_async_work(env, NULL, resource_name,
       CancelExecute, BusyCancelComplete,
@@ -143,10 +148,9 @@ static napi_value TestCancel(napi_env env, napi_callback_info info) {
     NODE_API_CALL(env, napi_queue_async_work(env, async_carrier[i]._request));
   }
 
-  // now queue the work we are going to cancel and then cancel it.
-  // cancel will fail if the work has already started, but
-  // we have prevented it from starting by consuming all of the
-  // workers above.
+  // Now queue the work we are going to cancel and cancel it right away.  If a
+  // worker has already picked it up, the cancel below fails and the completion
+  // callback reports napi_ok instead of napi_cancelled.
   NODE_API_CALL(env,
     napi_get_cb_info(env, info, &argc, argv, &_this, &data));
 
@@ -156,7 +160,15 @@ static napi_value TestCancel(napi_env env, napi_callback_info info) {
   NODE_API_CALL(env,
       napi_create_reference(env, argv[0], 1, &async_carrier[0]._callback));
   NODE_API_CALL(env, napi_queue_async_work(env, async_carrier[0]._request));
-  NODE_API_CALL(env, napi_cancel_async_work(env, async_carrier[0]._request));
+
+  // napi_generic_failure means the work had already started (uv_cancel's
+  // UV_EBUSY); the completion callback then reports napi_ok.  Any other
+  // failure is a real error.
+  napi_status cancel_status =
+      napi_cancel_async_work(env, async_carrier[0]._request);
+  NODE_API_ASSERT(env,
+      cancel_status == napi_ok || cancel_status == napi_generic_failure,
+      "Unexpected status from napi_cancel_async_work.");
   return NULL;
 }
 

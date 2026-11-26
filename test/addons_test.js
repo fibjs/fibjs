@@ -190,7 +190,13 @@ describe('addons api', () => {
             assert.strictEqual(val, 10);
         }));
 
-        test_async.TestCancel(test.mustCall(function () { }));
+        // The blocking pool grows on demand, so this runtime cannot saturate
+        // it the way Node's fixed-size pool can: the work may start before the
+        // cancel reaches it.  Accept either completion status (napi_ok or
+        // napi_cancelled); the callback still has to run exactly once.
+        test_async.TestCancel(test.mustCall(function (status) {
+            assert.ok(status === 0 || status === 11, 'unexpected status: ' + status);
+        }));
 
         test_async.DoRepeatedWork(test.mustCall((status) => {
             assert.strictEqual(status, 0);
