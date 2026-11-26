@@ -12,6 +12,10 @@
 #include <cstring>
 #include <unordered_set>
 
+#ifdef _WIN32
+#include <malloc.h>
+#endif
+
 namespace fibjs {
 
 static std::atomic<uint64_t> g_txn(1);
@@ -200,6 +204,32 @@ static size_t clamp_cache_limit(size_t bytes)
 // segment buffers
 //---------------------------------------------------------------------------
 
+// Vector rows are read by the SIMD kernels, which want 64-byte alignment (a
+// cache line per row at dim 16 and below).  Windows has no posix_memalign, so
+// keep the pair of calls local instead of using them directly.
+static void* alloc_aligned(size_t bytes)
+{
+#ifdef _WIN32
+    return _aligned_malloc(bytes, 64);
+#else
+    void* p = nullptr;
+
+    if (posix_memalign(&p, 64, bytes) != 0)
+        return nullptr;
+
+    return p;
+#endif
+}
+
+static void free_aligned(void* p)
+{
+#ifdef _WIN32
+    _aligned_free(p);
+#else
+    free(p);
+#endif
+}
+
 static std::shared_ptr<VecBuf> alloc_vecs(uint32_t cap, uint32_t stride)
 {
     size_t bytes = (size_t)cap * stride * sizeof(float);
@@ -208,9 +238,9 @@ static std::shared_ptr<VecBuf> alloc_vecs(uint32_t cap, uint32_t stride)
         bytes = 64;
 
     auto buf = std::make_shared<VecBuf>();
-    void* p = nullptr;
+    void* p = alloc_aligned(bytes);
 
-    if (posix_memalign(&p, 64, bytes) != 0)
+    if (!p)
         return nullptr;
 
     buf->data = (float*)p;
@@ -226,7 +256,7 @@ static int64_t* alloc_meta(uint32_t cap)
 VecBuf::~VecBuf()
 {
     if (data)
-        free(data);
+        free_aligned(data);
 }
 
 VecSegment::~VecSegment()
