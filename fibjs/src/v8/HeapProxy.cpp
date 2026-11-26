@@ -10,8 +10,7 @@
 #include "HeapSnapshot.h"
 #include "HeapGraphNode.h"
 #include "HeapGraphEdge.h"
-#include "StringBuffer.h"
-#include "ifs/fs.h"
+#include "FileStream.h"
 
 namespace fibjs {
 
@@ -55,32 +54,64 @@ result_t HeapSnapshotProxy::getNodeById(int32_t id, obj_ptr<HeapGraphNode_base>&
 
 result_t HeapSnapshotProxy::save(exlib::string fname, AsyncHandle ac)
 {
-    class BufferStream : public v8::OutputStream {
+    if (ac.isSync())
+        return result_t::nosync();
+
+    // fs.writeTextFile enforced the worker's file-system switch; the stream is
+    // opened directly here, so the same check has to be made explicitly. The
+    // cc_ entry carries no isolate because it may run outside one; the static
+    // v8.saveSnapshot checks its own isolate before reaching this point.
+    if (ac.callType() != AsyncEvent::kCAsyncCall
+        && !ac.isolate()->m_enable_FileSystem)
+        return result_t::invalid_call();
+
+    // The serialized graph is written chunk by chunk instead of being collected
+    // into one string: a snapshot of a large heap is hundreds of MB, and the
+    // StringBuffer plus the string and Buffer copies that
+    // fs.writeTextFile would make exhausted the 32-bit address space. The
+    // loaded-snapshot writer (HeapSnapshot::save) streams the same way.
+    class FileStreamOutput : public v8::OutputStream {
     public:
+        FileStreamOutput(FileStream* file)
+            : m_file(file)
+        {
+        }
+
         virtual void EndOfStream()
         {
         }
 
         virtual WriteResult WriteAsciiChunk(char* data, int size)
         {
-            m_buf.append(data, size);
+            result_t hr = m_file->Write(data, size);
+            if (hr.failed()) {
+                if (!m_hr.failed())
+                    m_hr = hr;
+                return kAbort;
+            }
             return kContinue;
         }
 
-        exlib::string result()
+        result_t result() const
         {
-            return m_buf.str();
+            return m_hr;
         }
 
     private:
-        StringBuffer m_buf;
+        FileStream* m_file;
+        result_t m_hr;
     };
 
-    BufferStream bs;
-    m_snapshot->Serialize(&bs);
+    obj_ptr<FileStream> file = new FileStream();
+    result_t hr = file->open(fname, "w");
+    if (hr.failed())
+        return hr;
 
-    int32_t len;
-    return fs_base::ac_writeTextFile(fname, bs.result(), len);
+    FileStreamOutput out(file);
+    m_snapshot->Serialize(&out);
+    file->close();
+
+    return out.result();
 }
 
 result_t HeapSnapshotProxy::get_time(date_t& retVal)

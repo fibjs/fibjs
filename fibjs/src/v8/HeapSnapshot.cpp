@@ -101,6 +101,10 @@ result_t v8_base::diff(v8::Local<v8::Function> test, obj_ptr<DiffType>& retVal)
 
 result_t v8_base::saveSnapshot(exlib::string fname)
 {
+    Isolate* isolate = Isolate::current();
+    if (isolate && !isolate->m_enable_FileSystem)
+        return result_t::invalid_call();
+
     result_t hr = normalize_file_path_like(fname, fname);
     if (hr.failed())
         return hr;

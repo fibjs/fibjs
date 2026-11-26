@@ -16,6 +16,38 @@ function unlink(pathname) {
     } catch (e) { }
 }
 
+// The snapshots are tens of MB. Reading both into strings to compare them
+// doubles that in the isolate and, on the 32-bit build, the run dies with
+// std::bad_alloc by the time the full suite has grown the heap. Compare the
+// files a chunk at a time; the result is the same, the peak is one chunk.
+function sameFileContent(a, b) {
+    const chunk = 1024 * 1024;
+    const first = fs.open(a, 'r');
+    const second = fs.open(b, 'r');
+    const firstBuf = Buffer.alloc(chunk);
+    const secondBuf = Buffer.alloc(chunk);
+
+    try {
+        while (true) {
+            const firstRead = first.read(firstBuf, 0, chunk, -1);
+            const secondRead = second.read(secondBuf, 0, chunk, -1);
+
+            if (firstRead.bytesRead !== secondRead.bytesRead)
+                return false;
+
+            if (firstRead.bytesRead === 0)
+                return true;
+
+            if (Buffer.compare(firstBuf.slice(0, firstRead.bytesRead),
+                secondBuf.slice(0, secondRead.bytesRead)) !== 0)
+                return false;
+        }
+    } finally {
+        first.close();
+        second.close();
+    }
+}
+
 describe("v8", () => {
     after(() => {
         unlink(path.join(__dirname, "test.heapsnapshot" + vmid));
@@ -41,8 +73,8 @@ describe("v8", () => {
         var ss = v8.loadSnapshot(path.join(__dirname, "test1.heapsnapshot" + vmid));
         ss.save(path.join(__dirname, "test2.heapsnapshot" + vmid));
 
-        assert.equal(fs.readTextFile(path.join(__dirname, "test1.heapsnapshot" + vmid)),
-            fs.readTextFile(path.join(__dirname, "test2.heapsnapshot" + vmid)));
+        assert.equal(sameFileContent(path.join(__dirname, "test1.heapsnapshot" + vmid),
+            path.join(__dirname, "test2.heapsnapshot" + vmid)), true);
     });
 
     it("diff", () => {
