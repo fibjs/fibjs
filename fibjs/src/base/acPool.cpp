@@ -32,11 +32,26 @@ namespace fibjs {
 // the pool keeps its stacks in the steady state.
 #define MAX_POOL_WORKERS 1024
 
-class acPool {
+// Idle workers of the blocking pool retire after this long without work, and
+// only while the pool is above its floor: an OS thread costs ~20us to create
+// (measured with a pthread_create+join loop: 19-26us on macOS) while parking
+// one is almost free, so the floor is kept ready for the next burst.
+#define POOL_IDLE_MS 1000
+
+// ---------------------------------------------------------------------------
+// Fiber pool (result_t::nosync): the work is not blocking, it only has to run
+// later on the isolate thread.  Workers are fibers of that one thread, so they
+// cooperate: the pool is a queue plus parked fibers, with no need to know how
+// many of them are busy.
+//
+// Growth/retirement is the historical policy described above: park grown
+// workers up to MAX_POOL_WORKERS and retire only over the cap, so a bursty
+// server does not malloc/free a stack per request.
+// ---------------------------------------------------------------------------
+class FiberPool {
 public:
-    acPool(int32_t max_idle, bool bThread = false)
-        : m_bThread(bThread)
-        , m_max_idle(max_idle)
+    FiberPool(int32_t max_idle)
+        : m_max_idle(max_idle)
         , m_idleWorkers(1)
     {
         new_worker();
@@ -51,14 +66,132 @@ public:
 private:
     void new_worker()
     {
-        // The pool never lets its worker count exceed the cap; a task queued
-        // while the pool is at the cap is still picked up by the caller, which
-        // falls through to m_pool.get() right after this call.
-        if (m_workers.inc() > max_workers()) {
+        if (m_workers.inc() > MAX_POOL_WORKERS) {
             m_workers.dec();
             return;
         }
 
+        // The worker itself accounts for being idle (m_idleWorkers.dec() at
+        // entry); decrementing here as well would leave the counter negative
+        // and the pool would then never grow (its pickup path only spawns when
+        // the counter lands exactly on 0).
+        exlib::Service::CreateFiber(FiberProcWorker, this, WORKER_STACK_SIZE * 1024, "WorkerFiber");
+    }
+
+    void FiberProcWorker()
+    {
+        Runtime rtForThread(NULL);
+        AsyncEvent* p;
+
+        m_idleWorkers.dec();
+
+        while (true) {
+            if (m_idleWorkers.inc() > m_max_idle) {
+                // Too many idle workers: park this one in m_pool.get() below
+                // instead of retiring it, so its fiber stack is reused (see
+                // MAX_POOL_WORKERS); only retire beyond the cap.
+                bool bRetire = false;
+
+                if (m_idleWorkers.dec() > 0) {
+                    bool bOverCap = m_workers.dec() >= MAX_POOL_WORKERS;
+
+                    if (bOverCap)
+                        bRetire = true;
+                    else
+                        m_workers.inc();
+                }
+
+                if (bRetire)
+                    break;
+
+                m_idleWorkers.inc();
+            }
+
+            p = m_pool.get();
+            if (m_idleWorkers.dec() == 0)
+                if (m_idleWorkers.CompareAndSwap(0, 1) == 0)
+                    new_worker();
+
+            p->invoke();
+        }
+    }
+
+    static void FiberProcWorker(void* ptr)
+    {
+        ((FiberPool*)ptr)->FiberProcWorker();
+    }
+
+private:
+    int32_t m_max_idle;
+    exlib::Queue<AsyncEvent> m_pool;
+    exlib::atomic m_idleWorkers;
+    exlib::atomic m_workers;
+};
+
+// ---------------------------------------------------------------------------
+// Thread pool (result_t::longsync): real blocking work, one OS thread per task
+// in flight.  Every synchronous call that has to block (db, dns, zlib, crypto,
+// vector scans) hops through here, so the policy is tuned for latency:
+//
+//   * a floor of workers stays parked (a parked thread costs no memory),
+//     workers above the floor retire only after POOL_IDLE_MS of silence;
+//   * put() spawns a worker itself when queued tasks outnumber idle workers,
+//     so a burst creates its threads in parallel instead of one per task
+//     pickup.
+//
+// A worker-side spin before parking was tried and dropped: it never removed the
+// caller's wake-up (the expensive half of a pool hop) and competed with the
+// woken JS thread for a core. Measurements in
+// plans/acpool-split-analysis-2026-11-26.md.
+//
+// Measured effect (8 logical CPUs, macOS): 7 way fan-out went from 544us to
+// 442us, a 100 row vector query from 28.0us to 25.0us; the single task hop
+// (~9us, two cross-thread wake-ups) is unchanged, and both spin variants tried
+// for it made things worse.
+// ---------------------------------------------------------------------------
+class ThreadPool {
+public:
+    ThreadPool(int32_t floor)
+        : m_floor(floor)
+        , m_idle(floor)
+    {
+        for (int32_t i = 0; i < floor; i++) {
+            m_workers.inc();
+            create_worker();
+        }
+    }
+
+public:
+    void put(AsyncEvent* ac)
+    {
+        // Counter shared with the queue: lets put() decide whether a worker is
+        // missing without locking the list.
+        m_count.inc();
+        m_pool.put(ac);
+
+        // Nobody is waiting: start a worker now, in parallel with the task
+        // being picked up, instead of waiting for a busy worker to finish.
+        // Comparing against the queue length (and not just "no idle worker")
+        // matters for bursts: tasks are queued faster than workers pick them
+        // up, so the first one to notice idle > 0 must not swallow the rest.
+        if (m_count.value() > m_idle.value())
+            spawn();
+    }
+
+private:
+    void spawn()
+    {
+        if (m_workers.inc() > MAX_POOL_WORKERS) {
+            m_workers.dec();
+            return;
+        }
+
+        m_idle.inc();
+        create_worker();
+    }
+
+    void create_worker()
+    {
         class _thread : public exlib::OSThread {
         public:
             typedef void (*thread_func)(void*);
@@ -87,76 +220,74 @@ private:
             void* m_arg;
         };
 
-        if (m_bThread)
-            (new _thread(FiberProcWorker, this))->start();
-        else
-            exlib::Service::CreateFiber(FiberProcWorker, this, WORKER_STACK_SIZE * 1024, "WorkerFiber");
+        (new _thread(worker_entry, this))->start();
     }
 
-    void FiberProcWorker()
+    static void worker_entry(void* ptr)
+    {
+        ((ThreadPool*)ptr)->worker();
+    }
+
+    AsyncEvent* take()
+    {
+        AsyncEvent* p = m_pool.tryget();
+
+        if (p)
+            m_count.dec();
+
+        return p;
+    }
+
+    void worker()
     {
         Runtime rtForThread(NULL);
-        AsyncEvent* p;
 
-        m_idleWorkers.dec();
+        // Invariant: a worker is counted as idle unless it is running a task.
+        for (;;) {
+            AsyncEvent* p = nullptr;
 
-        while (true) {
-            if (m_idleWorkers.inc() > m_max_idle) {
-                // Too many idle workers: retire this one only when the pool
-                // grew beyond the cap, otherwise park it in m_pool.get()
-                // below, so its fiber stack is reused (see MAX_POOL_WORKERS).
-                // The blocking (thread based) pool keeps retiring as before.
-                bool bRetire = false;
+            if (m_count.value() > 0)
+                p = take();
 
-                if (m_idleWorkers.dec() > 0) {
-                    bool bOverCap = m_workers.dec() >= max_workers();
+            if (!p) {
+                bool above_floor = m_workers.value() > m_floor;
 
-                    if (m_bThread || bOverCap)
-                        bRetire = true;
-                    else
-                        m_workers.inc();
+                if (m_pool.m_sem.wait(above_floor ? POOL_IDLE_MS : -1)) {
+                    p = m_pool.m_list.getHead();
+                    m_count.dec();
+                } else {
+                    // Timed out above the floor: retire, unless that would
+                    // drop the pool below its floor (a concurrent worker may
+                    // have retired first).
+                    m_idle.dec();
+
+                    if (m_workers.dec() >= m_floor)
+                        return;
+
+                    m_workers.inc();
+                    m_idle.inc();
+                    continue;
                 }
-
-                if (bRetire)
-                    break;
-
-                m_idleWorkers.inc();
             }
 
-            p = m_pool.get();
-            if (m_idleWorkers.dec() == 0)
-                if (m_idleWorkers.CompareAndSwap(0, 1) == 0)
-                    new_worker();
-
+            m_idle.dec();
             p->invoke();
+            m_idle.inc();
         }
     }
 
-    static void FiberProcWorker(void* ptr)
-    {
-        ((acPool*)ptr)->FiberProcWorker();
-    }
-
-    int32_t max_workers() const
-    {
-        // Hard cap on the worker count. Fibers park up to this cap (their
-        // stacks are cheap: only the touched pages are resident), threads and
-        // over-cap workers retire as soon as they go idle.
-        return MAX_POOL_WORKERS;
-    }
-
 private:
-    bool m_bThread;
-    int32_t m_max_idle;
+    int32_t m_floor;
     exlib::Queue<AsyncEvent> m_pool;
-    exlib::atomic m_idleWorkers;
-    exlib::atomic m_workers;
+    exlib::atomic m_count;   // queued tasks
+    exlib::atomic m_idle;    // workers able to take a task
+    exlib::atomic m_workers; // live workers
 };
 
-static acPool* s_acPool;
-static acPool* s_lsPool;
-
 void putGuiPool(AsyncEvent* ac);
+
+static FiberPool* s_acPool;
+static ThreadPool* s_lsPool;
 
 AsyncEvent::AsyncEvent(Isolate* isolate)
     : m_isolate(isolate)
@@ -443,8 +574,23 @@ result_t AsyncCallBack::check_result(result_t hr, const v8::FunctionCallbackInfo
 
 void InitializeAcPool()
 {
-    s_lsPool = new acPool(2, true);
-    s_acPool = new acPool(2);
+    // The blocking pool keeps a floor of parked threads: a thread costs ~20us
+    // to create, so re-creating the workers of every burst is the expensive
+    // part, and parking one costs no memory (measured: same RSS with 2 and 8
+    // parked threads).  One per CPU, capped at 8, keeps both small machines
+    // and big ones happy.
+    int32_t cpus = 1;
+    os_base::cpuNumbers(cpus);
+
+    int32_t floor = cpus;
+
+    if (floor < 2)
+        floor = 2;
+    if (floor > 8)
+        floor = 8;
+
+    s_acPool = new FiberPool(2);
+    s_lsPool = new ThreadPool(floor);
 }
 
 void async(std::function<void(void)> func, result_t mode)
