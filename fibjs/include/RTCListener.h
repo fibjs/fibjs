@@ -77,6 +77,7 @@ private:
     void emitError(const std::string& message);
 
     result_t closeInternal();
+    void releaseMux();
 
 private:
     std::shared_ptr<rtc::IceUdpMuxListener> m_mux;

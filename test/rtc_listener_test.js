@@ -516,6 +516,17 @@ describe('rtc listener', function () {
         const { listener, events } = makeListener();
         listener.listen(4361, '127.0.0.1');
         listener.close();
+
+        // close() has to unregister the ICE mux and release its UDP socket.
+        // The registration (and with it the bound socket) used to survive
+        // close() when the vendored libdatachannel left
+        // IceUdpMuxListener::mStopped uninitialized: stop() then returned
+        // without unregistering, and the next listen() on the port failed
+        // with ERR_SOCKET_BIND_FAILED.
+        const probe = dgram.createSocket('udp4');
+        probe.bind(4361, '127.0.0.1');
+        probe.close();
+
         listener.listen(4361, '127.0.0.1');
 
         const client = connectV1(4361, staticFingerprint);

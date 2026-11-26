@@ -10,6 +10,11 @@
 #include "SimpleObject.h"
 #include "utils.h"
 
+#ifndef JUICE_STATIC
+#define JUICE_STATIC
+#endif
+#include "juice/include/juice/juice.h"
+
 #include <openssl/bio.h>
 #include <openssl/ec.h>
 #include <openssl/evp.h>
@@ -81,10 +86,7 @@ result_t RTCListener_base::_new(RTCListenerOptions* options,
 
 RTCListener::~RTCListener()
 {
-    if (m_mux) {
-        m_mux->stop();
-        m_mux.reset();
-    }
+    releaseMux();
 
     Isolate* isolate = get_holder();
     if (m_holding && isolate && !isolate->is_terminating()) {
@@ -622,15 +624,30 @@ result_t RTCListener::address(obj_ptr<AddressType>& retVal)
     return result_t();
 }
 
+void RTCListener::releaseMux()
+{
+    if (!m_mux)
+        return;
+
+    // The vendored libdatachannel leaves IceUdpMuxListener::mStopped
+    // uninitialized. A stale "true" makes stop() return without unregistering:
+    // the juice registry keeps the callback - and a pointer to this wrapper -
+    // so the next listen() on the port fails with ERR_SOCKET_BIND_FAILED and
+    // incoming STUN packets would call into the destroyed object. Clearing the
+    // registration through libjuice is idempotent, so it covers both the
+    // broken and the fixed library.
+    juice_mux_listen(nullptr, m_port, nullptr, nullptr);
+
+    m_mux->stop();
+    m_mux.reset();
+}
+
 result_t RTCListener::closeInternal()
 {
     if (m_listening) {
         m_listening = false;
 
-        if (m_mux) {
-            m_mux->stop();
-            m_mux.reset();
-        }
+        releaseMux();
 
         std::lock_guard lock(m_pendingLock);
         m_pending.clear();
