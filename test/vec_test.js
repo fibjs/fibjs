@@ -4,6 +4,7 @@ var assert = require('assert');
 var db = require('db');
 var fs = require('fs');
 var path = require('path');
+var test_util = require('./test_util');
 
 function readFloats(buf, n) {
     var res = [];
@@ -684,8 +685,20 @@ console.log(JSON.stringify({
 
         try {
             var ret = child_process.execFile(process.execPath, [scriptFile], {
-                env: { FIBJS_VEC_RAM_LIMIT: String(1024 * 1024) }
+                // A filtered env has to keep the emulation/simulator keys or
+                // the child cannot even start on the cross-arch CI targets
+                // (qemu finds the guest loader through QEMU_LD_PREFIX, the
+                // iOS simulator through DYLD_ROOT_PATH).
+                env: Object.assign(test_util.pickEnv(process.env, []), {
+                    FIBJS_VEC_RAM_LIMIT: String(1024 * 1024)
+                })
             });
+
+            // Keep the child's exit code and stderr in the failure message: an
+            // empty stdout alone only says the child never printed anything.
+            assert.equal(ret.exitCode, 0, 'vec budget child failed (exit ' +
+                ret.exitCode + '): ' + (ret.stderr || ''));
+            assert.ok(ret.stdout != null, 'vec budget child produced no output');
 
             var r = JSON.parse(ret.stdout.trim());
 
