@@ -27,8 +27,80 @@
  *  - **Transactions**: begin uses `BEGIN IMMEDIATE` so a read-then-write transaction takes
  *    the WAL write lock up front instead of failing on a lock upgrade; the savepoint forms
  *    of begin/commit/rollback behave as described in DbConnection.
- *  - **Built-in extensions**: FTS5 full-text search and the `vec_index` virtual table for
- *    vector search through `vec_search` are compiled into the engine.
+ *  - **Built-in extensions**: FTS5 full-text search and the `vec_index` virtual table
+ *    (v2.0.0) for exact vector search; the vector extension is described below.
+ *
+ *  The `vec_index` extension:
+ *
+ *  `vec_index` stores float32 vectors partitioned by an optional text key (usually a
+ *  document id) and answers exact top-k queries by inner product.
+ *
+ *  Table declaration:
+ *  ```sql
+ *  CREATE VIRTUAL TABLE vindex USING vec_index(
+ *      embedding(128),   -- vector column, dimension 1..4096
+ *      doc_id key,       -- optional partition key (text)
+ *      ordinal order     -- optional tie-break key (integer)
+ *  );
+ *  ```
+ *  - At least one vector column is required; at most one `key` and one `order` column are
+ *    allowed. A table without `key` has one implicit partition.
+ *  - Column names are matched case-insensitively; dimensions must be between 1 and 4096.
+ *  - The hidden `distance` column is the top-k distance in search mode and NULL in scans.
+ *    The declared columns are readable; vector columns return a float32 BLOB.
+ *  - `rowid` is the application-provided integer id and must be unique.
+ *
+ *  Writing:
+ *  - `INSERT` requires all vector columns and the key (when declared); vectors may be JSON
+ *    arrays or float32 BLOBs and are normalized before they are stored.
+ *  - `UPDATE` treats a NULL vector column as "unchanged"; changing the key moves the row
+ *    to the new partition.
+ *  - `DELETE` removes by rowid. Removing the last row of a partition removes it.
+ *    `INSERT OR REPLACE` and `OR IGNORE` follow SQLite's conflict handling.
+ *  - Changes made inside a transaction are visible to later statements of that
+ *    transaction; `ROLLBACK` discards them and `COMMIT` makes them durable.
+ *
+ *  Querying:
+ *  ```sql
+ *  SELECT rowid, distance FROM vindex
+ *   WHERE vec_search(embedding, ?) AND doc_id IN (?, ?)
+ *   ORDER BY distance
+ *   LIMIT 20;
+ *  ```
+ *  - `vec_search(column, query)` is a constraint used in `WHERE`, not a scalar function.
+ *    `query` is a float32 BLOB or a JSON array. A JSON array may carry a `:k` suffix
+ *    (`'[1,2,3]:50'`) to set the candidate count; `LIMIT` takes precedence when both are
+ *    present, and the default is 100.
+ *  - A BLOB query is used as-is: normalize it with `vec_normalize()` first so distances
+ *    match `vec_distance_ip()`. JSON queries are normalized automatically.
+ *  - Using `vec_search` outside a usable `WHERE` constraint (including the select list)
+ *    raises an error instead of returning NULL.
+ *  - Only `key = ?` and `key IN (...)` are supported on the key column. Other key
+ *    constraints (`LIKE`, `<`, `IS NULL`, ...), constraints on the `order` column,
+ *    `OFFSET`, and `rowid` filters combined with `vec_search` are rejected instead of
+ *    silently returning wrong rows.
+ *  - Results are ordered by `(distance, order, rowid)` when the declared `order` column is
+ *    present.
+ *  - `rowid = ?` alone is a point lookup; `key = ?`/`IN` without `vec_search` scans only
+ *    those partitions. Plain scans return `distance = NULL`.
+ *
+ *  Functions:
+ *  - `vec_search(column, query)` — the vector constraint used in `WHERE`.
+ *  - `vec_distance(a, b)` — normalizes both arguments, then returns `1 - dot(a, b)`.
+ *  - `vec_distance_ip(a, b)` — skips normalization and is the reference for comparing
+ *    index results.
+ *  - `vec_normalize(v)` — returns the normalized float32 BLOB.
+ *  - `vec_version()` — returns `v2.0.0`.
+ *  - `vec_stats(table)` — returns a JSON object with the row, partition and segment
+ *    counts, the on-disk `bytes`, and cache counters (`cache_bytes`, `cache_limit`,
+ *    `cache_hits`, `cache_misses`, `cache_evictions`, `cache_loads`).
+ *  - `vec_cache_limit(table[, bytes])` — reads or sets the memory budget used by the
+ *    index and returns the effective value. The default is selected automatically;
+ *    values above the platform limit are clamped.
+ *
+ *  Compatibility:
+ *  - An index created by the old paged format must be dropped and recreated; the error
+ *    `vec_index storage format changed; drop and rebuild` reports this.
  *
  *  Example 1 — file database round trip:
  *  ```JavaScript
@@ -49,17 +121,49 @@
  *  fs.rmSync(dir, { recursive: true, force: true });
  *  ```
  *
- *  Example 2 — vector search with the vec_index extension:
+ *  Example 2 — partitioned vector search:
  *  ```JavaScript
  *  const db = require('db');
  *  const conn = db.openSQLite(':memory:');
  *
- *  conn.execute('CREATE VIRTUAL TABLE vindex USING vec_index(title(3))');
- *  conn.execute('INSERT INTO vindex (title, rowid) VALUES (?, ?)', '[1,2,3]', 3);
+ *  conn.execute('CREATE VIRTUAL TABLE vindex USING vec_index(embedding(3), doc_id key, ordinal order)');
+ *  conn.trans(() => {
+ *      conn.execute('INSERT INTO vindex (rowid, embedding, doc_id, ordinal) VALUES (?, ?, ?, ?)',
+ *          1, '[1,0,0]', 'doc-a', 0);
+ *      conn.execute('INSERT INTO vindex (rowid, embedding, doc_id, ordinal) VALUES (?, ?, ?, ?)',
+ *          2, '[0,1,0]', 'doc-a', 1);
+ *      conn.execute('INSERT INTO vindex (rowid, embedding, doc_id, ordinal) VALUES (?, ?, ?, ?)',
+ *          3, '[1,1,0]', 'doc-b', 0);
+ *  });
  *
- *  const found = conn.execute(
- *      'SELECT rowid, distance FROM vindex WHERE vec_search(title, ?)', '[1,2,5.1234]');
- *  console.log(found[0].rowid); // 3, the closest vector
+ *  const q = conn.execute('SELECT vec_normalize("[1,0,0]") AS v')[0].v;
+ *  const hits = conn.execute(
+ *      'SELECT rowid, distance FROM vindex WHERE vec_search(embedding, ?) AND doc_id = ? '
+ *      + 'ORDER BY distance LIMIT 2', q, 'doc-a');
+ *  console.log(hits.map(row => row.rowid)); // [1, 2]
+ *
+ *  const stats = JSON.parse(conn.execute("SELECT vec_stats('vindex') AS s")[0].s);
+ *  console.log(stats.rows, stats.partitions, stats.cache_limit > 0); // 3 2 true
+ *
+ *  conn.close();
+ *  ```
+ *
+ *  Example 3 — update, delete and the cache budget:
+ *  ```JavaScript
+ *  const db = require('db');
+ *  const conn = db.openSQLite(':memory:');
+ *
+ *  conn.execute('CREATE VIRTUAL TABLE vindex USING vec_index(embedding(3))');
+ *  conn.execute('INSERT INTO vindex (rowid, embedding) VALUES (?, ?)', 1, '[1,0,0]');
+ *  conn.execute('INSERT INTO vindex (rowid, embedding) VALUES (?, ?)', 2, '[0,1,0]');
+ *
+ *  // NULL leaves an existing vector unchanged.
+ *  conn.execute('UPDATE vindex SET embedding = NULL WHERE rowid = ?', 1);
+ *  conn.execute('DELETE FROM vindex WHERE rowid = ?', 2);
+ *
+ *  const before = conn.execute("SELECT vec_cache_limit('vindex') AS v")[0].v;
+ *  conn.execute("SELECT vec_cache_limit('vindex', ?) AS v", 1024 * 1024);
+ *  console.log(before > 1024 * 1024); // true: the default budget is at least 64MB
  *
  *  conn.close();
  *  ```
