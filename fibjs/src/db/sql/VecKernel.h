@@ -28,6 +28,11 @@
 
 #if defined(__x86_64__) || defined(_M_X64)
 #include <immintrin.h>
+#if defined(_MSC_VER)
+// clang-cl targets the MSVC CRT, which provides neither __cpu_model nor
+// __cpu_indicator_init; cpu_has_avx2() probes CPUID/XGETBV instead.
+#include <intrin.h>
+#endif
 #define VEC_KERNEL_X64 1
 // MSVC has no per-function target attributes; it keeps the SSE2 path.
 #if defined(__clang__) || defined(__GNUC__)
@@ -318,8 +323,32 @@ inline bool cpu_has_avx2()
 {
 #if defined(VEC_KERNEL_X64_DISPATCH)
     static const bool has = []() {
+#if defined(_MSC_VER)
+        // clang-cl links against the MSVC CRT, which has no
+        // __cpu_model/__cpu_indicator_init for __builtin_cpu_supports(),
+        // so probe the CPU directly.
+        int regs[4];
+
+        __cpuid(regs, 0);
+        if (regs[0] < 7)
+            return false;
+
+        __cpuid(regs, 1);
+        if (!(regs[2] & (1 << 27)) // OSXSAVE
+            || !(regs[2] & (1 << 28)) // AVX
+            || !(regs[2] & (1 << 12))) // FMA
+            return false;
+
+        // XMM and YMM state must be enabled by the OS to use AVX.
+        if ((_xgetbv(0) & 0x06) != 0x06)
+            return false;
+
+        __cpuidex(regs, 7, 0);
+        return (regs[1] & (1 << 5)) != 0; // AVX2
+#else
         __builtin_cpu_init();
         return __builtin_cpu_supports("avx2") && __builtin_cpu_supports("fma");
+#endif
     }();
     return has;
 #else
