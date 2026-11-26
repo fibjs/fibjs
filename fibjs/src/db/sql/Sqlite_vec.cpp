@@ -975,11 +975,24 @@ static int vecIndexBestIndex(sqlite3_vtab* tab, sqlite3_index_info* pIdxInfo)
     }
 
     if (rowid_i >= 0) {
-        if (search_i >= 0 || key_i >= 0) {
+        if (search_i >= 0) {
+            // Compatibility with the v1 planner: a rowid equality next to
+            // vec_search used to be resolved by whichever constraint came
+            // first, and the common join shape (`vec.rowid = m.rowid` plus
+            // vec_search) ran as a search that SQLite post-filtered by rowid.
+            // Keep that shape instead of failing statement preparation: run
+            // the top-k search and leave the rowid constraint to SQLite.
+            // Note: if the planner drives the join from the other table this
+            // costs one top-k scan per rowid lookup; forcing the vector table
+            // as the outer loop (CROSS JOIN) remains the efficient form.
+            rowid_i = -1;
+        } else if (key_i >= 0) {
             p->set_err("vec_index: rowid lookups cannot be combined with other constraints");
             return SQLITE_ERROR;
         }
+    }
 
+    if (rowid_i >= 0) {
         pIdxInfo->aConstraintUsage[rowid_i].argvIndex = 1;
         pIdxInfo->aConstraintUsage[rowid_i].omit = 1;
         pIdxInfo->idxNum = IDX_LOOKUP | ((p->vec_cols[0] + 1) << IDX_COL_SHIFT);

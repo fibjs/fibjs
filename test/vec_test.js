@@ -454,12 +454,23 @@ describe("vec", () => {
             conn.execute(`insert into kv(rowid, emb) values(2, "[1,0,0]")`);
         }, { name: 'Error', number: 20009 });
 
-        assert.throws(() => {
-            conn.execute(`select rowid from kv where vec_search(emb, ?) and rowid = 1`, q);
-        }, { name: 'Error', number: 20009 });
+        // Compatibility with the v1 planner: rowid equality next to
+        // vec_search runs the search and post-filters by rowid.
+        assert.deepEqual(
+            conn.execute(`select rowid from kv where vec_search(emb, ?) and rowid = 1`, q),
+            [{ "rowid": 1 }]);
+        assert.deepEqual(
+            conn.execute(`select rowid from kv where vec_search(emb, ?) and rowid = 2`, q),
+            []);
 
         assert.throws(() => {
             conn.execute(`select rowid from kv where vec_search(emb, ?) limit 1 offset 1`, q);
+        }, { name: 'Error', number: 20009 });
+
+        // rowid IN cannot be filled back to k after the post-filter, so it
+        // stays rejected.
+        assert.throws(() => {
+            conn.execute(`select rowid from kv where vec_search(emb, ?) and rowid in (1, 2)`, q);
         }, { name: 'Error', number: 20009 });
 
         // Evaluating the constraint as an ordinary scalar must not silently
@@ -467,6 +478,29 @@ describe("vec", () => {
         assert.throws(() => {
             conn.execute(`select vec_search(emb, ?) as v from kv`, q);
         }, { name: 'Error', number: 20009 });
+    });
+
+    it("rowid join with vec_search uses the search plan", () => {
+        // Regression: v2 used to reject the statement while planning because
+        // the join term `m.rowid = v.rowid` and vec_search were both offered
+        // to xBestIndex.  It must instead plan as a search and let SQLite
+        // post-filter the top-k rows by rowid.
+        conn.execute("create virtual table legacy using vec_index(emb(3))");
+        conn.execute("create table legacy_map(rowid integer primary key, tag text)");
+        conn.execute(`insert into legacy(rowid, emb) values(1, "[1,0,0]")`);
+        conn.execute(`insert into legacy(rowid, emb) values(2, "[0.9,0.1,0]")`);
+        conn.execute(`insert into legacy(rowid, emb) values(3, "[0,1,0]")`);
+        conn.execute(`insert into legacy_map(rowid, tag) values(1, 'a')`);
+        conn.execute(`insert into legacy_map(rowid, tag) values(2, 'b')`);
+        conn.execute(`insert into legacy_map(rowid, tag) values(3, 'c')`);
+
+        var rows = conn.execute(`select m.tag as tag, v.distance as distance
+            from legacy v
+            inner join legacy_map m on m.rowid = v.rowid
+            where vec_search(v.emb, '[1,0,0]:2')
+            order by v.distance`);
+
+        assert.deepEqual(rows.map(r => r.tag), ['a', 'b']);
     });
 
     it("vec_stats", () => {
