@@ -173,6 +173,9 @@ struct VecWriteSet {
 
 class VecStore : public std::enable_shared_from_this<VecStore> {
 public:
+    VecStore() = default;
+    ~VecStore();
+
     static std::shared_ptr<VecStore> open(sqlite3* db, const std::string& table,
         const std::vector<VecColumnDef>& cols, bool create, std::string& err);
     static std::shared_ptr<VecStore> lookup(sqlite3* db, const std::string& table);
@@ -192,6 +195,19 @@ public:
     void trim_cache();
     void set_cache_limit(size_t bytes); // 0 disables the limit
     size_t cache_limit() const;
+
+    // The store only exists once the virtual table has been opened on this
+    // connection, but a caller may want to configure or read the budget before
+    // the first query.  set_pending_limit() remembers the value per (database,
+    // table) and open() applies it, so nothing is cached under the default
+    // budget beforehand.
+    static size_t clamp_limit(size_t bytes);
+    static void set_pending_limit(sqlite3* db, const std::string& table, size_t bytes);
+    static bool pending_limit(sqlite3* db, const std::string& table, size_t& bytes);
+
+    // True when the table exists and was created by this module; the store is
+    // not needed for that (it only exists once the vtab is opened).
+    static bool table_is_vec_index(sqlite3* db, const char* table);
 
     struct CacheStats {
         int64_t bytes = 0;
@@ -228,7 +244,16 @@ private:
 
     void register_locked(const std::shared_ptr<VecSegment>& seg);
     void evict_locked();
-    void apply_auto_limit(uint64_t index_bytes);
+
+    // Default budget for an automatic store.  vectors_bytes is what the LRU may
+    // hold, meta_bytes is what the snapshot already holds outside the LRU (row
+    // ids and order keys cannot be evicted), so only the remainder of the RAM
+    // bound is available for vectors.  Every automatic store in the process
+    // shares that bound (see rebalance()), so several tables cannot each claim
+    // half of memory; an explicit set_cache_limit() opts out of the split but
+    // still counts against the bound.
+    void apply_auto_limit(uint64_t vectors_bytes, uint64_t meta_bytes);
+    static void rebalance();
 
     std::string m_table;
     std::vector<VecColumnDef> m_cols;
@@ -246,6 +271,11 @@ private:
     int64_t m_cache_misses = 0;
     int64_t m_cache_evictions = 0;
     int64_t m_cache_loads = 0;
+
+    // Auto-budget bookkeeping, guarded by the budget registry lock.
+    uint64_t m_auto_want = 0; // vector bytes this store would like to cache
+    uint64_t m_auto_meta = 0; // resident metadata counted against the RAM bound
+    bool m_budget_registered = false;
 
     std::shared_ptr<const VecSnapshot> m_cur;
     std::shared_ptr<const VecSnapshot> m_prev;

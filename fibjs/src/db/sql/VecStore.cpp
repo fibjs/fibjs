@@ -23,7 +23,25 @@ static std::atomic<uint64_t> g_txn(1);
 static std::mutex g_store_mutex;
 static std::unordered_map<std::string, std::weak_ptr<VecStore>> g_stores;
 
-static uint64_t snapshot_index_bytes(const VecSnapshot& snap);
+// Budgets set before their table was opened, keyed like g_stores; guarded by
+// g_store_mutex.
+static std::unordered_map<std::string, size_t> g_pending_limits;
+
+// Stores that own an automatic budget.  All of them share one RAM bound, so the
+// process cannot exceed it no matter how many tables it opens.  Guarded by
+// g_store_mutex (which is also the lock order for taking a store's
+// m_cache_mutex from the coordinator).
+static std::unordered_set<VecStore*> g_budget_stores;
+
+// Vector payload (what the LRU may hold) and the row ids / order keys that are
+// loaded with the snapshot and never evicted, so they have to be counted
+// against the RAM bound outside the LRU.
+struct SnapshotBytes {
+    uint64_t vectors = 0;
+    uint64_t meta = 0;
+};
+
+static SnapshotBytes snapshot_bytes(const VecSnapshot& snap);
 
 //---------------------------------------------------------------------------
 // small sqlite helpers
@@ -123,6 +141,27 @@ static bool table_exists(sqlite3* db, const char* name)
     return found;
 }
 
+bool VecStore::table_is_vec_index(sqlite3* db, const char* name)
+{
+    sqlite3_stmt* st = nullptr;
+    std::string err;
+    bool found = false;
+
+    if (prepare_sql(db,
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?1 "
+            "AND sql LIKE '%using vec_index%'",
+            &st, err)
+        != SQLITE_OK)
+        return false;
+
+    sqlite3_bind_text(st, 1, name, -1, SQLITE_TRANSIENT);
+    if (sqlite3_step(st) == SQLITE_ROW)
+        found = true;
+
+    sqlite3_finalize(st);
+    return found;
+}
+
 static bool table_has_column(sqlite3* db, const char* table, const char* col)
 {
     sqlite3_stmt* st = nullptr;
@@ -171,9 +210,22 @@ static void gen_store_id(char* buf)
 }
 
 // Largest vector budget the default policy may use: half of physical memory,
-// clamped to the 32-bit address-space cap when applicable.
+// clamped to the 32-bit address-space cap when applicable.  FIBJS_VEC_RAM_LIMIT
+// overrides it (ops use it to cap the vector cache of a container); it is read
+// on every rebalance so tests can change it at runtime.
+static size_t clamp_cache_limit(size_t bytes);
+
 static size_t default_ram_limit()
 {
+    const char* e = getenv("FIBJS_VEC_RAM_LIMIT");
+
+    if (e && *e) {
+        long long v = atoll(e);
+
+        if (v > 0)
+            return clamp_cache_limit((size_t)v);
+    }
+
     int64_t total = 0;
 
     os_base::totalmem(total);
@@ -824,10 +876,28 @@ std::shared_ptr<VecStore> VecStore::open(sqlite3* db, const std::string& table,
     if (rc != SQLITE_OK)
         return nullptr;
 
+    size_t pending = 0;
+    bool has_pending = false;
+
     {
         std::lock_guard<std::mutex> lock(g_store_mutex);
         g_stores[key] = s;
+
+        // A budget configured before the table was opened (see
+        // set_pending_limit) is applied below, once the registry lock is
+        // released: set_cache_limit rebalances every store.
+        auto pit = g_pending_limits.find(key);
+
+        if (pit != g_pending_limits.end()) {
+            pending = pit->second;
+            has_pending = true;
+            g_pending_limits.erase(pit);
+        }
     }
+
+    // Takes effect before anything is cached.
+    if (has_pending)
+        s->set_cache_limit(pending);
 
     return s;
 }
@@ -981,41 +1051,179 @@ void VecStore::trim_cache()
 
 void VecStore::set_cache_limit(size_t bytes)
 {
-    std::lock_guard<std::mutex> lock(m_cache_mutex);
+    {
+        std::lock_guard<std::mutex> lock(m_cache_mutex);
 
-    m_cache_limit = clamp_cache_limit(bytes);
-    m_cache_limit_set = true;
-    evict_locked();
+        m_cache_limit = clamp_cache_limit(bytes);
+        m_cache_limit_set = true;
+        evict_locked();
+    }
+
+    // Explicit budgets are honoured verbatim but still count against the
+    // process-wide bound, so the automatic stores get what is left.
+    {
+        std::lock_guard<std::mutex> lock(g_store_mutex);
+
+        g_budget_stores.insert(this);
+        m_budget_registered = true;
+    }
+
+    rebalance();
 }
 
-// Default budget: the whole index when it fits, otherwise half of physical
-// memory (see default_ram_limit).  It only ever grows, so deleting rows does
-// not evict a warm cache.
-void VecStore::apply_auto_limit(uint64_t index_bytes)
+// Default budget: the whole index when it fits, otherwise what is left of the
+// RAM bound after the always-resident metadata that all automatic stores
+// already hold.  It only ever grows for a given index size, so deleting rows
+// does not evict a warm cache.
+void VecStore::apply_auto_limit(uint64_t vectors_bytes, uint64_t meta_bytes)
 {
-    std::lock_guard<std::mutex> lock(m_cache_mutex);
+    {
+        std::lock_guard<std::mutex> lock(g_store_mutex);
 
-    if (m_cache_limit_set)
-        return;
+        if (m_cache_limit_set) {
+            // An explicit limit wins; rebalancing may still need to know about
+            // this store, but its own budget never changes.
+            return;
+        }
 
-    uint64_t lim = index_bytes;
+        if (m_budget_registered && m_auto_want == vectors_bytes && m_auto_meta == meta_bytes)
+            return;
+
+        m_auto_want = vectors_bytes;
+        m_auto_meta = meta_bytes;
+        g_budget_stores.insert(this);
+        m_budget_registered = true;
+    }
+
+    rebalance();
+}
+
+// Splits the process-wide vector budget between every automatic store:
+//   * explicit budgets are honoured and subtracted first,
+//   * resident metadata is subtracted (it cannot be evicted),
+//   * what remains is shared proportionally to what each store asked for.
+// Called when a store's index size changes, so it is not on the per-query path.
+void VecStore::rebalance()
+{
+    struct Share {
+        VecStore* store;
+        uint64_t want; // read under the registry lock below
+    };
+
+    std::vector<Share> shares;
+    uint64_t fixed_sum = 0, meta_sum = 0, want_sum = 0, head, floor;
     size_t ram = default_ram_limit();
+    size_t n_auto = 0;
 
-    if (lim > ram)
-        lim = ram;
-    if (lim < VEC_CACHE_MIN_LIMIT)
-        lim = VEC_CACHE_MIN_LIMIT;
-    if (lim > VEC_CACHE_MAX_LIMIT)
-        lim = VEC_CACHE_MAX_LIMIT;
+    {
+        std::lock_guard<std::mutex> lock(g_store_mutex);
 
-    if (lim > m_cache_limit)
-        m_cache_limit = (size_t)lim;
+        shares.reserve(g_budget_stores.size());
+
+        for (auto* s : g_budget_stores) {
+            std::lock_guard<std::mutex> l(s->m_cache_mutex);
+
+            if (s->m_cache_limit_set)
+                fixed_sum += s->m_cache_limit;
+            else {
+                meta_sum += s->m_auto_meta;
+                want_sum += s->m_auto_want;
+                n_auto++;
+                shares.push_back({ s, s->m_auto_want });
+            }
+        }
+    }
+
+    uint64_t used = fixed_sum + meta_sum;
+
+    head = ram > used ? (uint64_t)ram - used : 0;
+
+    // Smallest budget worth handing out: enough to keep a tiny index reportable
+    // as "at least this big", but never more than an equal share of what is
+    // left, so the floors themselves cannot break the bound.  A budget of 0
+    // means "unlimited" here, so an exhausted bound still has to be > 0.
+    floor = n_auto ? head / n_auto : head;
+
+    if (floor > VEC_CACHE_MIN_LIMIT)
+        floor = VEC_CACHE_MIN_LIMIT;
+    if (floor == 0)
+        floor = 1;
+
+    for (auto& sh : shares) {
+        VecStore* s = sh.store;
+        std::lock_guard<std::mutex> l(s->m_cache_mutex);
+
+        if (s->m_cache_limit_set)
+            continue;
+
+        uint64_t want = sh.want;
+        uint64_t lim;
+
+        if (want_sum <= head)
+            lim = want; // nobody is competing: the whole index may be cached
+        else
+            // Share the remainder in proportion to the request.
+            lim = want_sum ? (uint64_t)((long double)want * head / want_sum) : head;
+
+        if (lim > want)
+            lim = want;
+        if (lim < floor)
+            lim = floor;
+
+        s->m_cache_limit = clamp_cache_limit((size_t)lim);
+        s->evict_locked();
+    }
+}
+
+VecStore::~VecStore()
+{
+    bool was_registered = false;
+
+    {
+        std::lock_guard<std::mutex> lock(g_store_mutex);
+
+        if (m_budget_registered) {
+            g_budget_stores.erase(this);
+            m_budget_registered = false;
+            was_registered = true;
+        }
+    }
+
+    // The others may now take the freed share.
+    if (was_registered)
+        rebalance();
 }
 
 size_t VecStore::cache_limit() const
 {
     std::lock_guard<std::mutex> lock(m_cache_mutex);
     return m_cache_limit;
+}
+
+size_t VecStore::clamp_limit(size_t bytes)
+{
+    return clamp_cache_limit(bytes);
+}
+
+void VecStore::set_pending_limit(sqlite3* db, const std::string& table, size_t bytes)
+{
+    std::string key = cache_key(db, table);
+    std::lock_guard<std::mutex> lock(g_store_mutex);
+
+    g_pending_limits[key] = clamp_cache_limit(bytes);
+}
+
+bool VecStore::pending_limit(sqlite3* db, const std::string& table, size_t& bytes)
+{
+    std::string key = cache_key(db, table);
+    std::lock_guard<std::mutex> lock(g_store_mutex);
+    auto it = g_pending_limits.find(key);
+
+    if (it == g_pending_limits.end())
+        return false;
+
+    bytes = it->second;
+    return true;
 }
 
 VecStore::CacheStats VecStore::cache_stats() const
@@ -1255,7 +1463,8 @@ int VecStore::load(sqlite3* db, int64_t version, const std::string& store_id,
             return rc;
 
         if (v2 == v && sid2 == sid) {
-            apply_auto_limit(snapshot_index_bytes(*snap));
+            auto bytes = snapshot_bytes(*snap);
+            apply_auto_limit(bytes.vectors, bytes.meta);
             out = snap;
             return SQLITE_OK;
         }
@@ -1356,7 +1565,8 @@ void VecStore::publish(const std::shared_ptr<VecSnapshot>& snap)
 
     // The first load may have seen an empty index (create + insert); publish
     // is where the budget learns about the rows the transaction added.
-    apply_auto_limit(snapshot_index_bytes(*snap));
+    auto bytes = snapshot_bytes(*snap);
+    apply_auto_limit(bytes.vectors, bytes.meta);
 }
 
 int VecStore::persist(sqlite3* db, VecSnapshot& snap, VecWriteSet& ws, int64_t& new_version,
@@ -1487,19 +1697,21 @@ int VecStore::persist(sqlite3* db, VecSnapshot& snap, VecWriteSet& ws, int64_t& 
     return SQLITE_OK;
 }
 
-static uint64_t snapshot_index_bytes(const VecSnapshot& snap)
+static SnapshotBytes snapshot_bytes(const VecSnapshot& snap)
 {
-    uint64_t bytes = 0;
+    SnapshotBytes b;
 
     for (auto& c : snap.cols)
         if (c)
             for (auto& p : c->parts)
                 if (p)
                     for (auto& g : p->segs)
-                        if (g)
-                            bytes += (uint64_t)g->cap * g->stride * sizeof(float);
+                        if (g) {
+                            b.vectors += (uint64_t)g->cap * g->stride * sizeof(float);
+                            b.meta += (uint64_t)g->cap * 2 * sizeof(int64_t);
+                        }
 
-    return bytes;
+    return b;
 }
 
 } // namespace fibjs

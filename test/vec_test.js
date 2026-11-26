@@ -592,6 +592,117 @@ describe("vec", () => {
             { number: 20009 });
     });
 
+    it("auto budgets share one process-wide RAM bound", () => {
+        // The default budget is "what is left of the RAM bound once the
+        // resident metadata is paid for", split between the stores that want
+        // it, so several tables cannot each claim half of memory.  The bound is
+        // fixed at startup (FIBJS_VEC_RAM_LIMIT), hence the child process.
+        var os = require('os');
+        var child_process = require('child_process');
+        var scriptFile = path.join(os.tmpdir(), "vec_budget_child_" + process.pid + ".js");
+
+        fs.writeFile(scriptFile, `
+var db = require('db');
+var fs = require('fs');
+var os = require('os');
+var path = require('path');
+
+var file = path.join(os.tmpdir(), 'vec_budget_child.db');
+['', '-wal', '-shm'].forEach((s) => { try { fs.unlink(file + s); } catch (e) { } });
+
+var conn = db.openSQLite(file);
+var vec = JSON.stringify([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8,
+    0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6]);
+
+conn.execute("create virtual table a using vec_index(emb(16))");
+conn.execute("create virtual table b using vec_index(emb(16))");
+conn.execute('begin');
+
+for (var n = 1; n <= 20000; n++) {
+    conn.execute('insert into a(rowid, emb) values(?, ?)', n, vec);
+    conn.execute('insert into b(rowid, emb) values(?, ?)', n, vec);
+}
+
+conn.execute('commit');
+
+function stats(t) {
+    return JSON.parse(conn.execute('select vec_stats(?) as s', t)[0].s);
+}
+
+function search(t) {
+    conn.execute('select rowid, distance from ' + t +
+        ' where vec_search(emb, ?) order by distance limit 10', vec);
+}
+
+search('a');
+search('b');
+
+var a = stats('a'), b = stats('b');
+
+conn.close();
+['', '-wal', '-shm'].forEach((s) => { try { fs.unlink(file + s); } catch (e) { } });
+
+console.log(JSON.stringify({
+    limit_a: a.cache_limit, limit_b: b.cache_limit,
+    bytes_a: a.bytes, bytes_b: b.bytes
+}));
+`);
+
+        try {
+            var ret = child_process.execFile(process.execPath, [scriptFile], {
+                env: { FIBJS_VEC_RAM_LIMIT: String(1024 * 1024) }
+            });
+
+            var r = JSON.parse(ret.stdout.trim());
+
+            // Both stores stay well inside the bound instead of each asking for
+            // their whole index (2 * 1.6MB fits easily, so without the shared
+            // bound both would report the full index)...
+            assert.ok(r.limit_a > 0);
+            assert.ok(r.limit_b > 0);
+            assert.ok(r.limit_a < r.bytes_a);
+            assert.ok(r.limit_b < r.bytes_b);
+
+            // ...the vector budgets never exceed the bound but are visibly
+            // below it, because the resident metadata is charged first.
+            assert.ok(r.limit_a + r.limit_b <= 512 * 1024);
+
+            // ...and they get comparable shares, since they want the same.
+            assert.ok(Math.abs(r.limit_a - r.limit_b) <= 4096);
+        } finally {
+            try { fs.unlink(scriptFile); } catch (e) { }
+        }
+    });
+
+    it("vec_cache_limit before the table is opened", () => {
+        var dbFile = path.join(__dirname, "vec_test.db");
+
+        conn.close();
+        conn = db.openSQLite(dbFile);
+        conn.execute("create virtual table kv using vec_index(emb(3), doc_id key, ordinal order)");
+        conn.execute(`insert into kv(rowid, emb, doc_id, ordinal) values(1, "[1,0,0]", "d1", 0)`);
+        conn.close();
+
+        // The store only exists once the vtab has been opened, but a budget can
+        // still be configured first: the value is held until the table opens.
+        conn = db.openSQLite(dbFile);
+        assert.equal(conn.execute("select vec_cache_limit('kv', 4096) as v")[0].v, 4096);
+        assert.equal(conn.execute("select vec_cache_limit('kv') as v")[0].v, 4096);
+
+        // Reading the budget of a table that was never opened reports that,
+        // instead of pretending the budget is unlimited.
+        assert.throws(() => conn.execute("select vec_cache_limit('other') as v"),
+            { number: 20009 });
+
+        // The first query applies it, so nothing is cached under the default
+        // budget in between.
+        assert.deepEqual(conn.execute('select rowid from kv'), [{ "rowid": 1 }]);
+        assert.equal(conn.execute("select vec_cache_limit('kv') as v")[0].v, 4096);
+
+        var s = JSON.parse(conn.execute(`select vec_stats('kv') as s`)[0].s);
+        assert.equal(s.cache_limit, 4096);
+    });
+
     it("shared cache refreshes across connections", () => {
         var dbFile = path.join(__dirname, "vec_test.db");
 

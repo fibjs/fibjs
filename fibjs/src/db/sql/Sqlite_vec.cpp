@@ -2055,9 +2055,14 @@ static void vecStatsFunc(sqlite3_context* context, int argc, sqlite3_value** arg
 
     auto store = VecStore::lookup(db, table);
     VecStore::CacheStats cs;
+    size_t pending = 0;
 
     if (store)
         cs = store->cache_stats();
+    else if (VecStore::pending_limit(db, table, pending))
+        // Configured before the vtab was opened: report that budget instead of
+        // 0, which would read as "unlimited".
+        cs.limit = (int64_t)pending;
 
     j["cache_bytes"] = cs.bytes;
     j["cache_limit"] = cs.limit;
@@ -2071,6 +2076,9 @@ static void vecStatsFunc(sqlite3_context* context, int argc, sqlite3_value** arg
     sqlite3_result_text(context, s.c_str(), -1, SQLITE_TRANSIENT);
 }
 
+// Does the table exist and is it a vec_index virtual table?  Needed because the
+// store is only created when the vtab is opened, while the budget may be
+// configured before the first query.
 static void vecCacheLimitFunc(sqlite3_context* context, int argc, sqlite3_value** argv)
 {
     if (argc < 1 || argc > 2 || sqlite3_value_type(argv[0]) != SQLITE_TEXT) {
@@ -2082,19 +2090,51 @@ static void vecCacheLimitFunc(sqlite3_context* context, int argc, sqlite3_value*
     sqlite3* db = sqlite3_context_db_handle(context);
     auto store = VecStore::lookup(db, table);
 
-    if (!store) {
-        sqlite3_result_error(context, "vec_index table not found", -1);
-        return;
-    }
-
     if (argc == 2) {
         sqlite3_int64 bytes = sqlite3_value_int64(argv[1]);
 
         // 0 (or a negative value) disables the byte budget.
-        store->set_cache_limit(bytes > 0 ? (size_t)bytes : 0);
+        size_t limit = VecStore::clamp_limit(bytes > 0 ? (size_t)bytes : 0);
+
+        if (store)
+            store->set_cache_limit(limit);
+        else {
+            // The vtab has not been opened on this connection yet: remember the
+            // value and let VecStore::open() apply it, so a budget can be set
+            // before the first query (and before anything is cached).
+            if (!VecStore::table_is_vec_index(db, table)) {
+                sqlite3_result_error(context, "vec_index table not found", -1);
+                return;
+            }
+
+            VecStore::set_pending_limit(db, table, limit);
+        }
+
+        sqlite3_result_int64(context, (sqlite3_int64)limit);
+        return;
     }
 
-    sqlite3_result_int64(context, (sqlite3_int64)store->cache_limit());
+    if (store) {
+        sqlite3_result_int64(context, (sqlite3_int64)store->cache_limit());
+        return;
+    }
+
+    size_t pending;
+
+    if (VecStore::pending_limit(db, table, pending)) {
+        sqlite3_result_int64(context, (sqlite3_int64)pending);
+        return;
+    }
+
+    if (!VecStore::table_is_vec_index(db, table)) {
+        sqlite3_result_error(context, "vec_index table not found", -1);
+        return;
+    }
+
+    sqlite3_result_error(context,
+        "vec_index table is not open on this connection yet; query it once or call "
+        "vec_cache_limit(table, bytes) first",
+        -1);
 }
 
 int SQLite::vec_init()
