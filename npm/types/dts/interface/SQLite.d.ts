@@ -95,8 +95,13 @@
  *    counts, the on-disk `bytes`, and cache counters (`cache_bytes`, `cache_limit`,
  *    `cache_hits`, `cache_misses`, `cache_evictions`, `cache_loads`).
  *  - `vec_cache_limit(table[, bytes])` — reads or sets the memory budget used by the
- *    index and returns the effective value. The default is selected automatically;
- *    values above the platform limit are clamped.
+ *    index and returns the effective value. Without an explicit value the budget is
+ *    the whole index, limited by a process-wide bound of half of physical memory
+ *    (`FIBJS_VEC_RAM_LIMIT` overrides it): the row ids and order keys that stay
+ *    resident are charged first, then what is left is shared between the open
+ *    indexes in proportion to their size, so several tables cannot each claim half
+ *    of memory. An explicit value may also be set before the table is first
+ *    queried; values above the platform limit are clamped.
  *
  *  Compatibility:
  *  - An index created by the old paged format must be dropped and recreated; the error
