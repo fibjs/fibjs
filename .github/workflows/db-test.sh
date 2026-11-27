@@ -141,8 +141,31 @@ elif [ "$OS" = "darwin" ]; then
     /usr/local/opt/postgresql@16/bin/createuser -s fibjs 2>/dev/null || true
     /opt/homebrew/opt/postgresql@16/bin/createdb -O fibjs test 2>/dev/null || \
     /usr/local/opt/postgresql@16/bin/createdb -O fibjs test 2>/dev/null || true
-    /opt/homebrew/opt/postgresql@16/bin/psql -c "ALTER USER fibjs PASSWORD 'fibjs_test';" 2>/dev/null || \
-    /usr/local/opt/postgresql@16/bin/psql -c "ALTER USER fibjs PASSWORD 'fibjs_test';" 2>/dev/null || true
+    /opt/homebrew/opt/postgresql@16/bin/psql -d postgres -c "ALTER USER fibjs PASSWORD 'fibjs_test';" 2>/dev/null || \
+    /usr/local/opt/postgresql@16/bin/psql -d postgres -c "ALTER USER fibjs PASSWORD 'fibjs_test';" 2>/dev/null || true
+
+    # Homebrew initializes pg_hba.conf with `trust`, so every password is
+    # accepted and the credential encoding probe can observe nothing.  Switch
+    # the local/loopback rules to scram-sha-256 now that the roles have
+    # passwords (the roles were created while trust was still in effect).
+    PG_PREFIX=
+    for d in /opt/homebrew/opt/postgresql@16 /usr/local/opt/postgresql@16; do
+        if [ -x "$d/bin/psql" ]; then PG_PREFIX="$d"; break; fi
+    done
+    if [ -n "$PG_PREFIX" ]; then
+        HBA=$("$PG_PREFIX/bin/psql" -d postgres -tAc 'show hba_file' 2>/dev/null || true)
+        if [ -n "$HBA" ] && [ -f "$HBA" ]; then
+            sed -i '' -E 's/(^|[[:space:]])trust([[:space:]]*)$/\1scram-sha-256\2/' "$HBA"
+            "$PG_PREFIX/bin/psql" -d postgres -c 'select pg_reload_conf();' >/dev/null 2>&1 || true
+            if PGPASSWORD=not_the_password "$PG_PREFIX/bin/psql" -w -h 127.0.0.1 -U fibjs -d test -c 'select 1' >/dev/null 2>&1; then
+                echo "WARNING: PostgreSQL still accepts a wrong password ($HBA)"
+            elif ! PGPASSWORD=fibjs_test "$PG_PREFIX/bin/psql" -w -h 127.0.0.1 -U fibjs -d test -c 'select 1' >/dev/null 2>&1; then
+                echo "WARNING: the fibjs role cannot authenticate with its password ($HBA)"
+            else
+                echo "PostgreSQL password authentication enforced ($HBA)"
+            fi
+        fi
+    fi
 
     echo "=== Starting MySQL ==="
     brew services start mysql 2>/dev/null || true
@@ -176,9 +199,27 @@ elif [ "$OS" = "windows" ]; then
 
     PG_BIN="/c/Program Files/PostgreSQL/14/bin"
     export PATH="$PG_BIN:$PATH"
-    # 创建测试数据库
-    "$PG_BIN/psql" -U postgres -c "CREATE DATABASE test;" 2>/dev/null || true
-    "$PG_BIN/psql" -U postgres -c "ALTER USER postgres PASSWORD 'root';" 2>/dev/null || true
+    # 创建测试数据库（PGPASSWORD 对 preinstalled/choco 两种安装都成立）
+    PGPASSWORD=root "$PG_BIN/psql" -U postgres -c "CREATE DATABASE test;" 2>/dev/null || true
+    PGPASSWORD=root "$PG_BIN/psql" -U postgres -c "ALTER USER postgres PASSWORD 'root';" 2>/dev/null || true
+
+    # EDB/choco 的默认 pg_hba.conf 也是 trust（上面的 psql 不需要密码），
+    # 编码探针会假通过。和 macOS 一样把 local/loopback 改成 scram-sha-256。
+    PG_HBA=$(PGPASSWORD=root "$PG_BIN/psql" -U postgres -d postgres -tAc 'show hba_file' 2>/dev/null | tr -d '\r')
+    if [ -n "$PG_HBA" ]; then
+        PG_HBA_U=$(cygpath -u "$PG_HBA" 2>/dev/null || printf '%s' "$PG_HBA")
+        if [ -f "$PG_HBA_U" ]; then
+            sed -i -E 's/(^|[[:space:]])trust([[:space:]]*)$/\1scram-sha-256\2/' "$PG_HBA_U"
+            PGPASSWORD=root "$PG_BIN/psql" -U postgres -d postgres -c 'select pg_reload_conf();' >/dev/null 2>&1 || true
+            if PGPASSWORD=not_the_password "$PG_BIN/psql" -w -h 127.0.0.1 -U postgres -d test -c 'select 1' >/dev/null 2>&1; then
+                echo "WARNING: PostgreSQL still accepts a wrong password ($PG_HBA)"
+            elif ! PGPASSWORD=root "$PG_BIN/psql" -w -h 127.0.0.1 -U postgres -d test -c 'select 1' >/dev/null 2>&1; then
+                echo "WARNING: the postgres role cannot authenticate with its password ($PG_HBA)"
+            else
+                echo "PostgreSQL password authentication enforced ($PG_HBA)"
+            fi
+        fi
+    fi
 
     # MySQL: runner 只有客户端工具, 需通过 choco 安装服务器
     echo "=== Starting MySQL ==="
@@ -250,10 +291,21 @@ elif [ "$OS" = "windows" ]; then
     echo "=== Note: DM not tested on Windows (no DM server available) ==="
 
     # psql:// 在 Windows 上走 ODBC, 需要 psqlODBC 驱动; PostgreSQL 安装包不带该驱动
+    # ODBC Drivers 键把每个驱动都写成 VALUE（"PostgreSQL Unicode"="Installed"），
+    # 不是子键，所以对值路径做 Test-Path 永远不命中。64 位包同时注册了带
+    # (x64) 和不带 (x64) 两个名字，两种都要认；两个注册表视图都查。
     psql_odbc_installed() {
-        powershell -NoProfile -Command \
-            "if (Test-Path 'HKLM:\SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers\PostgreSQL Unicode') { 'yes' }" \
-            2>/dev/null | grep -q yes
+        powershell -NoProfile -Command '
+            $names = @("PostgreSQL Unicode","PostgreSQL Unicode(x64)","PostgreSQL ANSI","PostgreSQL ANSI(x64)")
+            foreach ($view in "Registry64","Registry32") {
+                $base = [Microsoft.Win32.RegistryKey]::OpenBaseKey("LocalMachine", $view)
+                $drivers = $base.OpenSubKey("SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers")
+                if ($drivers) {
+                    foreach ($name in $names) {
+                        if ($drivers.GetValue($name)) { "yes"; exit }
+                    }
+                }
+            }' 2>/dev/null | grep -q yes
     }
 
     if ! psql_odbc_installed; then
