@@ -578,6 +578,32 @@ describe("db", () => {
             });
         }
 
+        if (type == 'sqlite') {
+            it("SQLite errors expose the extended result code", () => {
+                conn.execute('drop table if exists enc_errno');
+                conn.execute('create table enc_errno (v text unique)');
+                conn.execute("insert into enc_errno (v) values ('a')");
+
+                assert.throws(() => {
+                    conn.execute("insert into enc_errno (v) values ('a')");
+                }, (err) => {
+                    assert.equal(err.code, 'ERR_SQL_EXECUTE');
+                    assert.equal(err.errno, 2067); // SQLITE_CONSTRAINT_UNIQUE
+                    assert.ok(/UNIQUE constraint failed/i.test(err.message));
+                    return true;
+                });
+
+                assert.throws(() => {
+                    conn.execute('select * from enc_errno_missing');
+                }, (err) => {
+                    assert.equal(err.errno, 1); // SQLITE_ERROR
+                    return true;
+                });
+
+                conn.execute('drop table enc_errno');
+            });
+        }
+
         describe("schema operations", () => {
             it("getTables", () => {
                 var tables = conn.getTables();
@@ -2199,12 +2225,200 @@ describe("db", () => {
         });
     });
 
+    // ---------------------------------------------------------------
+    // Credential encoding probe.
+    //
+    // The URL is the only layer that escapes credentials: the caller
+    // percent-encodes them once and the exact bytes must reach the
+    // server.  `%XX` and `+` are the two sequences that expose a second
+    // decoder in the driver path: psqlODBC decodes `Pwd` as form data
+    // (`+` -> space, `%XX` -> byte), so a password containing them gets
+    // authenticated with the wrong value.  Other ODBC drivers and the
+    // native MySQL client take the value literally.
+    //
+    // The password intentionally has no `;`: a `;` makes the current
+    // writer brace-quote the value, which already suppresses the
+    // psqlODBC decode and would hide the defect.
+    //
+    // Contract pinned per backend:
+    //   single percent-encoding  -> authenticates
+    //   double percent-encoding  -> does not authenticate
+    // ---------------------------------------------------------------
+    var CRED_PASS = 'p0p%2B+a@b';
+    var CRED_USER = 'fibjs_enc+u';
+    // DM rejects some characters in user names; the password still carries
+    // the sequences that matter.
+    var CRED_USER_DM = 'fibjs_enc_u';
+
+    function credUrl(conn_str, user, secret) {
+        var u = new URL(conn_str);
+        var host = u.hostname + (u.port ? ':' + u.port : '');
+
+        return u.protocol + '//' + encodeURIComponent(user) + ':'
+            + encodeURIComponent(secret) + '@' + host + u.pathname + u.search;
+    }
+
+    function credCreateUser(type, admin, dbname, user) {
+        switch (type) {
+            case 'psql':
+            case 'psql_kb':
+                try { admin.execute(`DROP USER IF EXISTS "${user}"`); } catch (e) { }
+                admin.execute(`CREATE USER "${user}" PASSWORD '${CRED_PASS}'`);
+                return () => {
+                    try { admin.execute(`DROP USER IF EXISTS "${user}"`); } catch (e) { }
+                };
+
+            case 'mysql':
+            case 'mysql57':
+                try { admin.execute(`DROP USER IF EXISTS '${user}'@'%'`); } catch (e) { }
+                admin.execute(`CREATE USER '${user}'@'%' IDENTIFIED BY '${CRED_PASS}'`);
+                // the database is selected by the handshake, so the user
+                // needs at least one privilege on it
+                admin.execute(`GRANT SELECT ON \`${dbname}\`.* TO '${user}'@'%'`);
+                return () => {
+                    try { admin.execute(`DROP USER IF EXISTS '${user}'@'%'`); } catch (e) { }
+                };
+
+            case 'mssql':
+                try { admin.execute(`DROP USER IF EXISTS [${user}]`); } catch (e) { }
+                try { admin.execute(`DROP LOGIN [${user}]`); } catch (e) { }
+                admin.execute(`CREATE LOGIN [${user}] WITH PASSWORD = N'${CRED_PASS}', CHECK_POLICY = OFF`);
+                admin.execute(`CREATE USER [${user}] FOR LOGIN [${user}]`);
+                return () => {
+                    try { admin.execute(`DROP USER [${user}]`); } catch (e) { }
+                    try { admin.execute(`DROP LOGIN [${user}]`); } catch (e) { }
+                };
+
+            case 'dm':
+                try { admin.execute(`DROP USER "${user}"`); } catch (e) { }
+                admin.execute(`CREATE USER "${user}" IDENTIFIED BY "${CRED_PASS}"`);
+                try { admin.execute(`GRANT CREATE SESSION TO "${user}"`); } catch (e) { }
+                return () => {
+                    try { admin.execute(`DROP USER "${user}"`); } catch (e) { }
+                };
+
+            default:
+                throw new Error(`credential encoding probe: unsupported backend '${type}'`);
+        }
+    }
+
+    function _test_credential_encoding(type, conn_str) {
+        var user = type == 'dm' ? CRED_USER_DM : CRED_USER;
+        var admin = null;
+        var drop = null;
+
+        before(() => {
+            admin = db.open(conn_str);
+            var dbname = new URL(conn_str).pathname.replace(/^\//, '') || DBNAME;
+            drop = credCreateUser(type, admin, dbname, user);
+
+            // The probe can only observe the password when the server checks
+            // it.  Homebrew PostgreSQL ships pg_hba.conf with `trust`, where
+            // both the correct and the mangled value authenticate and the
+            // suite would report a false pass (db-test.sh switches the macOS
+            // runner to scram-sha-256).
+            var passwordChecked = false;
+            try {
+                db.open(credUrl(conn_str, user, CRED_PASS + '-wrong')).close();
+            } catch (e) {
+                passwordChecked = true;
+            }
+
+            if (!passwordChecked)
+                throw new Error(type + ': the server accepted a wrong password '
+                    + '(pg_hba trust?); the credential encoding probe cannot observe the password');
+        });
+
+        after(() => {
+            if (drop) {
+                try { drop(); } catch (e) { }
+            }
+            if (admin)
+                admin.close();
+        });
+
+        it("credentials keep their bytes through the URL (single encoding)", () => {
+            var conn = db.open(credUrl(conn_str, user, CRED_PASS));
+
+            try {
+                var rs = conn.execute('select 1 as v');
+                assert.equal(Number(rs[0].v), 1,
+                    type + ': the password did not reach the server unchanged '
+                    + '(a layer between the URL and the server decodes credentials a second time)');
+            } finally {
+                conn.close();
+            }
+        });
+
+        it("double encoding does not authenticate", () => {
+            // A second encoding is not part of the contract: if it still
+            // authenticates, some layer decodes the value twice.  The user
+            // name stays single-encoded so only the password is under test.
+            var url = credUrl(conn_str, user, encodeURIComponent(CRED_PASS));
+
+            assert.throws(() => {
+                db.open(url);
+            }, (err) => {
+                assert.ok(err instanceof Error);
+                return true;
+            });
+        });
+
+        if (type == 'psql' || type == 'psql_kb') {
+            // psqlODBC keeps the braces in Uid / Database / Servername and its
+            // connection-string grammar has no other escape for ';', so the
+            // runtime rejects the value instead of authenticating with a
+            // different name.
+            it("rejects a ';' in a user name or database name", () => {
+                assert.throws(() => {
+                    db.open(credUrl(conn_str, 'fibjs;enc', CRED_PASS));
+                }, (err) => {
+                    assert.equal(err.code, 'ERR_INVALID_ARG_VALUE');
+                    assert.ok(err.message.indexOf('user name') > -1);
+                    return true;
+                });
+
+                var u = new URL(credUrl(conn_str, user, CRED_PASS));
+                u.pathname = '/fibjs;db';
+
+                assert.throws(() => {
+                    db.open(u.toString());
+                }, (err) => {
+                    assert.equal(err.code, 'ERR_INVALID_ARG_VALUE');
+                    assert.ok(err.message.indexOf('database name') > -1);
+                    return true;
+                });
+            });
+
+            it("decodes the database name once", () => {
+                var u = new URL(credUrl(conn_str, user, CRED_PASS));
+                u.pathname = '/fibjs probe db';
+
+                assert.throws(() => {
+                    db.open(u.toString());
+                }, (err) => {
+                    // The server reports the decoded name; the encoded form
+                    // must not survive the URL layer.
+                    assert.ok(err.message.indexOf('fibjs probe db') > -1,
+                        type + ': the database name was not decoded: ' + err.message);
+                    assert.equal(err.message.indexOf('fibjs%20probe%20db'), -1);
+                    return true;
+                });
+            });
+        }
+    }
+
     // if (global.full_test)
     // `let`, not `var`: describe blocks run after this loop, so a var binding
     // would leave every suite running the last configured server.
     for (let type in sql_server)
         describe(sql_server[type].desc, () => {
             _test(type, sql_server[type].conn_str);
+        });
+
+    for (let type in sql_server)
+        describe(sql_server[type].desc + ' (credential encoding)', () => {
+            _test_credential_encoding(type, sql_server[type].conn_str);
         });
 
     describe("leveldb", () => {
