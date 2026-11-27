@@ -161,10 +161,9 @@ describe("db", () => {
                     }
                 }
 
-                if (conn.type == 'psql' && process.platform === 'win32')
-                    assert.deepEqual(res, ['\n']);
-                else
-                    assert.deepEqual(res, []);
+                // fibjs pins LFConversion=0, so every platform round-trips the
+                // control characters unchanged, including '\n' on Windows.
+                assert.deepEqual(res, []);
             });
 
             it('binary', () => {
