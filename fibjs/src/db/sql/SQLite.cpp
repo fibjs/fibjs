@@ -50,10 +50,23 @@ static result_t db_closed()
     return errhelp::closed("ERR_INVALID_STATE", "SQLite: database is closed.");
 }
 
+// A failing SQLite call reports a primary result code through sqlite3_errcode
+// and a detailed one through sqlite3_extended_errcode. Node and Python keep
+// the extended code (e.g. 2067 for SQLITE_CONSTRAINT_UNIQUE), so the db error
+// carries it as `errno` next to the message.
+static result_t sqlite_failure(sqlite3* db)
+{
+    return result_t::make(CALL_E_INVALID_CALL)
+        .with_type_name(errtype::kError)
+        .with_code("ERR_SQL_EXECUTE")
+        .with_errno(sqlite3_extended_errcode(db))
+        .with_message(sqlite3_errmsg(db));
+}
+
 result_t SQLite::open(const char* file)
 {
     if (sqlite3_open_v2(file, (sqlite3**)&m_conn, SQLITE_OPEN_FLAGS, 0)) {
-        result_t hr = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_OPEN").with_format("%s: \"%s\"", sqlite3_errmsg((sqlite3*)m_conn), file);
+        result_t hr = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_OPEN").with_errno(sqlite3_extended_errcode((sqlite3*)m_conn)).with_format("%s: \"%s\"", sqlite3_errmsg((sqlite3*)m_conn), file);
         sqlite3_close((sqlite3*)m_conn);
         m_conn = NULL;
         return hr;
@@ -196,11 +209,8 @@ public:
             // to completion immediately, otherwise sqlite3_changes cannot
             // report the affected count of this statement.
             int32_t r = sqlite3_step(m_stmt);
-            if (r != SQLITE_DONE) {
-                if (r == SQLITE_ERROR)
-                    return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_EXECUTE").with_message(sqlite3_errmsg((sqlite3*)m_db->m_conn));
-                return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_EXECUTE").with_message("SQLite: statement execution failed");
-            }
+            if (r != SQLITE_DONE)
+                return sqlite_failure((sqlite3*)m_db->m_conn);
         }
 
         m_db->m_activeStmt = 1;
@@ -229,8 +239,7 @@ public:
             return result_t();
         }
 
-        result_t hr = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_EXECUTE").with_message(sqlite3_errmsg((sqlite3*)m_db->m_conn));
-        return hr;
+        return sqlite_failure((sqlite3*)m_db->m_conn);
     }
 
     virtual result_t runResult(int64_t& changes, int64_t& lastInsertId)
@@ -375,7 +384,7 @@ result_t SQLite::prepareStmt(db_tmpl<SQLite_base, SQLite>* db,
 
     if (sqlite3_prepare_v2((sqlite3*)db->m_conn, sql.c_str(),
             (int32_t)sql.length(), &stmt, &pTail)) {
-        result_t hr = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_EXECUTE").with_message(sqlite3_errmsg((sqlite3*)db->m_conn));
+        result_t hr = sqlite_failure((sqlite3*)db->m_conn);
         if (stmt)
             sqlite3_finalize(stmt);
         return hr;
@@ -439,7 +448,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
         sqlite3_stmt* stmt = 0;
 
         if (sqlite3_prepare_v2((sqlite3*)m_conn, pStr, sLen, &stmt, &pStr1)) {
-            result_t hr = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_EXECUTE").with_message(sqlite3_errmsg((sqlite3*)m_conn));
+            result_t hr = sqlite_failure((sqlite3*)m_conn);
             if (stmt)
                 sqlite3_finalize(stmt);
             return hr;
@@ -478,7 +487,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
                     break;
                 else {
                     sqlite3_finalize(stmt);
-                    return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_EXECUTE").with_message(sqlite3_errmsg((sqlite3*)m_conn));
+                    return sqlite_failure((sqlite3*)m_conn);
                 }
             }
         } else {
@@ -488,7 +497,7 @@ result_t SQLite::execute(exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle
                     sqlite3_last_insert_rowid((sqlite3*)m_conn));
             else {
                 sqlite3_finalize(stmt);
-                return result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_EXECUTE").with_message(sqlite3_errmsg((sqlite3*)m_conn));
+                return sqlite_failure((sqlite3*)m_conn);
             }
         }
 
@@ -565,7 +574,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
     }
 
     if (sqlite3_open_v2(c_str, &db2, SQLITE_OPEN_FLAGS, 0)) {
-        result_t hr = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_OPEN").with_format("%s: \"%s\"", sqlite3_errmsg(db2), c_str);
+        result_t hr = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_OPEN").with_errno(sqlite3_extended_errcode(db2)).with_format("%s: \"%s\"", sqlite3_errmsg(db2), c_str);
         return hr;
     }
 
@@ -583,7 +592,7 @@ result_t SQLite::backup(exlib::string fileName, AsyncHandle ac)
 
         sqlite3_backup_finish(pBackup);
     } else {
-        result_t hr = result_t::make(CALL_E_INVALID_CALL).with_type_name(errtype::kError).with_code("ERR_SQL_EXECUTE").with_message(sqlite3_errmsg((sqlite3*)m_conn));
+        result_t hr = sqlite_failure((sqlite3*)m_conn);
         sqlite3_close(db2);
         return hr;
     }
