@@ -61,6 +61,11 @@ if (process.env.CI)
 
 run("./addons_test.js");
 
+// The blocking pool must keep a worker when the OS refuses to create one (the
+// regression behind the ia32 timeout); the case is skipped where a thread
+// budget cannot be applied.
+run("./acpool_test.js");
+
 run("./coroutine_test.js");
 run("./stack_test.js");
 run("./fibmod_test.js");

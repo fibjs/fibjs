@@ -242,6 +242,16 @@ private:
     {
         Runtime rtForThread(NULL);
 
+        // m_workers counts every *requested* worker.  Thread creation can be
+        // refused by the OS (a 32-bit process can exhaust its address space
+        // for the default 8 MB stack long before the cap), and
+        // OSThread::start() has no way to report that back, so the refused
+        // request stays in m_workers and m_idle forever.  Retirement must be
+        // governed by the workers that actually run: otherwise a refused start
+        // lets the real workers retire down to zero, and the pool then sits on
+        // its queue forever (a queued longsync call never completes).
+        m_started.inc();
+
         // Invariant: a worker is counted as idle unless it is running a task.
         for (;;) {
             AsyncEvent* p = nullptr;
@@ -250,21 +260,23 @@ private:
                 p = take();
 
             if (!p) {
-                bool above_floor = m_workers.value() > m_floor;
+                bool above_floor = m_started.value() > m_floor;
 
                 if (m_pool.m_sem.wait(above_floor ? POOL_IDLE_MS : -1)) {
                     p = m_pool.m_list.getHead();
                     m_count.dec();
                 } else {
                     // Timed out above the floor: retire, unless that would
-                    // drop the pool below its floor (a concurrent worker may
-                    // have retired first).
+                    // drop the started workers below the floor (a concurrent
+                    // worker may have retired first).
                     m_idle.dec();
 
-                    if (m_workers.dec() >= m_floor)
+                    if (m_started.dec() >= m_floor) {
+                        m_workers.dec();
                         return;
+                    }
 
-                    m_workers.inc();
+                    m_started.inc();
                     m_idle.inc();
                     continue;
                 }
@@ -281,7 +293,8 @@ private:
     exlib::Queue<AsyncEvent> m_pool;
     exlib::atomic m_count;   // queued tasks
     exlib::atomic m_idle;    // workers able to take a task
-    exlib::atomic m_workers; // live workers
+    exlib::atomic m_workers; // requested workers (may include a failed start)
+    exlib::atomic m_started; // workers that actually entered worker()
 };
 
 void putGuiPool(AsyncEvent* ac);
