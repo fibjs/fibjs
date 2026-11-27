@@ -51,21 +51,29 @@ if [[ $HOST_OS == 'Linux' ]]; then
     # output at all - that is what the android/arm64 job did, hanging for hours
     # right after the "path" suite header.
     #
-    # The two budgets below come from the job logs of the 2026-10-08 and
-    # 2026-11-22 runs.  The native targets finish the suite in 8-12 minutes
-    # (ia32 664s, alpine/x64 648s, android/x64 492s), so a short leash is
-    # enough to catch a hang.  The qemu-emulated targets need 40-50 minutes for
-    # the same suite and swing by +-50% from one runner to the next (2026-11-22:
-    # arm64 2978s, loong64 2562s, arm 2501s, android/arm64 2466s, ppc64 2376s;
-    # 2026-10-08: riscv64 2186s, ppc64 2198s, loong64 2071s, arm64 2400s
-    # killed, arm 2400s killed, while a 2026-09-22 runner needed 849-1434s for
-    # the same jobs).  Their budget has to cover the slow end of that range:
-    # the previous 2400s cap killed runs that had already printed 96% of the
-    # suite output.  Raise TEST_TIMEOUT to override.
+    # The two budgets below are wall-clock limits for the whole suite.  They
+    # exist only to catch a livelocked/hung run, so they are deliberately much
+    # larger than the slowest observed pass.  Raise TEST_TIMEOUT to override.
+    #
+    # Native targets finished in 8-12 minutes in the 2026-10/2026-11 runs
+    # (ia32 664s, alpine/x64 648s, android/x64 492s), but the glibc ia32 job
+    # was killed at the old 1800s cap in runs 45854076014 and 45910300007
+    # after printing roughly half of the suite, while alpine/ia32 (the same
+    # 32-bit arch) finished in 703s in the latter run - so 1800s has too
+    # little headroom (and may be hiding a hang).  Native gets 7200s (2h).
+    #
+    # qemu-emulated targets normally need 40-50 minutes (2026-11-22: arm64
+    # 2978s, loong64 2562s, arm 2501s, android/arm64 2466s, ppc64 2376s;
+    # 2026-10-08: riscv64 2186s, ppc64 2198s, loong64 2071s; older runners
+    # needed 849-1434s), but ppc64 was already killed at the previous 6300s
+    # cap (run 45854076014), several emulated jobs of run 45910300007 were
+    # still running after 40+ minutes, and the suite keeps growing.  They get
+    # 12600s (3.5h); 3.5h of tests plus the longest observed build (~50 min)
+    # stays below GitHub's 6h job limit.
     if [[ $BUILD_ARCH == 'x64' || $BUILD_ARCH == 'ia32' ]]; then
-        TEST_TIMEOUT=${TEST_TIMEOUT:-1800}
+        TEST_TIMEOUT=${TEST_TIMEOUT:-7200}
     else
-        TEST_TIMEOUT=${TEST_TIMEOUT:-6300}
+        TEST_TIMEOUT=${TEST_TIMEOUT:-12600}
     fi
     # qemu 10, which docker/setup-qemu-action registers since the ubuntu 26.04
     # migration, defaults the riscv64 CPU to the "max" model.  The TCG code
@@ -100,7 +108,7 @@ if [[ $HOST_OS == 'Linux' ]]; then
         # cannot keep burning a core for the rest of the job
         docker rm -f ${TEST_CONTAINER} >/dev/null 2>&1 || true
 
-        echo "::error::the test run did not finish within ${TEST_TIMEOUT}s and was killed: the process is stuck, not merely slow."
+        echo "::error::the test run did not finish within ${TEST_TIMEOUT}s and was killed: if the log was still advancing it was slow rather than stuck (raise TEST_TIMEOUT); if it stopped, treat it as a hang."
         exit 1
     fi
 
