@@ -321,6 +321,14 @@ describe('the RTC MDN surface', () => {
         exchange(ctx);
         assert.ok(pump(ctx, function () { return remoteOpen; }), 'the remote channel did not open');
 
+        // The outgoing side only turns open when the peer acknowledges its
+        // OPEN message. That ACK can be processed after the remote datachannel
+        // and open events were already dispatched to the JS thread (the gap is
+        // much wider on emulated targets), so wait for the local state instead
+        // of sampling it right after the remote side opened.
+        assert.ok(pump(ctx, function () { return dc.readyState === 'open'; }),
+            'the local channel did not open');
+
         assert.equal(remoteState, 'open');
         assert.equal(remoteNegotiated, false);
         assert.equal(endOfCandidates, 1, 'the end-of-candidates event did not fire once');
