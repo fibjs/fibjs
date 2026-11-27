@@ -16,6 +16,11 @@ struct OdbcConnectOptions {
     const char* serverAttr;
     bool useHostPort;
     bool trustCertificate;
+    // The connection is made through psqlODBC, which has several
+    // non-standard value rules: it unquotes braces only for a handful of
+    // keywords (Pwd, pqopt, sslmode, conn_settings), decodes Pwd as form
+    // data, and on Windows rewrites LF to CRLF in text values.
+    bool psqlDriver;
 };
 
 result_t odbc_connect(exlib::string connString, const char* driver, int32_t port, void*& conn,

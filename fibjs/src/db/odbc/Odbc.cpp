@@ -126,10 +126,14 @@ static OdbcDiagInfo odbc_error_info(int32_t handleType, void* handle)
 {
     SQLRETURN hr;
     SQLSMALLINT len;
-    SQLINTEGER statusRecCount;
+    SQLINTEGER statusRecCount = 0;
     OdbcDiagInfo info;
 
-    SQLGetDiagFieldA(handleType, handle, 0, SQL_DIAG_NUMBER, &statusRecCount, SQL_IS_INTEGER, &len);
+    // Without diagnostics there is nothing to describe: do not read an
+    // uninitialized record count when the call itself fails.
+    if (SQLGetDiagFieldA(handleType, handle, 0, SQL_DIAG_NUMBER, &statusRecCount, SQL_IS_INTEGER, &len) < 0)
+        return info;
+
     for (int32_t i = 0; i < statusRecCount; i++) {
         char errorSQLState[14];
         char errorMessage[2048];
@@ -147,7 +151,7 @@ static OdbcDiagInfo odbc_error_info(int32_t handleType, void* handle)
             info.native = native;
         }
 
-        if (i > 1)
+        if (!info.message.empty())
             info.message.append("\n    ", 5);
         info.message.append(errorMessage);
     }
@@ -171,6 +175,11 @@ static result_t odbc_set_error(int32_t handleType, void* handle)
     if (info.has_native)
         b = std::move(b).with_errno(info.native);
 
+    // Keep a useful description when the driver exposes no record: an empty
+    // payload message would let the JS boundary fall back to a bare number.
+    if (info.message.empty())
+        info.message = "odbc: the driver reported a failure without a diagnostic message.";
+
     return result_t(std::move(b).with_message(info.message));
 }
 
@@ -183,40 +192,80 @@ result_t odbc_set_autocommit(void* conn, bool on)
     return result_t();
 }
 
-exlib::string safe_conn_string(const char* str)
+// The ODBC literal form: the value in braces, every '}' doubled.
+static exlib::string quote_odbc_value(const char* str, int32_t len, int32_t esc_cnt)
 {
-    bool b_safe = true;
-    int32_t esc_cnt = 0;
-    int32_t len = 0;
-    char ch;
-
-    while ((ch = str[len]) != 0) {
-        if (ch == '}')
-            esc_cnt++;
-        else if (ch == ';')
-            b_safe = false;
-        len++;
-    }
-
-    if (b_safe)
-        return str;
-
     exlib::string new_str;
     new_str.resize(len + esc_cnt + 2);
     char* ptr = new_str.data();
-    len = 0;
 
     *ptr++ = '{';
-    while ((ch = str[len]) != 0) {
-        *ptr++ = ch;
-        if (ch == '}')
-            *ptr++ = ch;
-
-        len++;
+    for (int32_t i = 0; i < len; i++) {
+        *ptr++ = str[i];
+        if (str[i] == '}')
+            *ptr++ = '}';
     }
     *ptr++ = '}';
 
     return new_str;
+}
+
+// Quote a value the ODBC grammar would otherwise split or read as syntax: the
+// ';' delimiter, a brace inside the value, and a value that starts with '{'
+// (which is otherwise the opening of the bracket syntax).
+exlib::string safe_conn_string(const char* str)
+{
+    bool need_quote = false;
+    int32_t esc_cnt = 0;
+    int32_t len = 0;
+
+    while (str[len]) {
+        if (str[len] == '}')
+            esc_cnt++;
+        else if (str[len] == ';')
+            need_quote = true;
+        len++;
+    }
+
+    if (len > 0 && str[0] == '{')
+        need_quote = true;
+
+    if (!need_quote)
+        return str;
+
+    return quote_odbc_value(str, len, esc_cnt);
+}
+
+// psqlODBC decodes Pwd as a form value (`+` -> space, `%XX` -> byte) unless
+// the value is brace-quoted (dlg_specific.c: decode_or_remove_braces). The
+// URL layer already decoded the credential once, so the password has to
+// reach the driver byte for byte. Braces are the ODBC literal form and the
+// drivers remove them (psqlODBC for Pwd, FreeTDS for every keyword); quoting
+// also protects the attribute delimiter and leading/trailing whitespace.
+static exlib::string safe_password(const char* str)
+{
+    bool need_quote = false;
+    int32_t esc_cnt = 0;
+    int32_t len = 0;
+
+    while (str[len]) {
+        char ch = str[len];
+
+        if (ch == '}') {
+            esc_cnt++;
+            need_quote = true;
+        } else if (ch == ';' || ch == '{' || ch == '%' || ch == '+')
+            need_quote = true;
+        len++;
+    }
+
+    if (len > 0 && (qisspace((unsigned char)str[0]) || qisspace((unsigned char)str[len - 1])))
+        need_quote = true;
+
+    if (!need_quote)
+        return str;
+
+    return quote_odbc_value(str, len, esc_cnt);
 }
 
 result_t odbc_connect(const char* driver, const char* host, int32_t port, const char* username,
@@ -241,6 +290,22 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
                 .arg_redacted("password"));
     };
 
+    // psqlODBC keeps the braces in Uid / Database / Servername, so the usual
+    // ODBC escape for ';' does not work there: the server would receive
+    // "{a;b}". The connection-string grammar has no other escape, so reject
+    // the value instead of silently authenticating with a different name.
+    if (options->psqlDriver) {
+        const char* what = NULL;
+
+        if (username && *username && strchr(username, ';'))
+            what = "user name";
+        else if (dbName && *dbName && strchr(dbName, ';'))
+            what = "database name";
+
+        if (what)
+            return diag(result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("odbc: the PostgreSQL ODBC driver cannot carry a ';' in a %s.", what).with_result(result_t::invalid_arg()));
+    }
+
     SQLRETURN hr;
     if (!g_odbc) {
         hr = SQLAllocEnv((SQLHENV*)&g_odbc);
@@ -256,6 +321,16 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
     }
 
     if (*driver) {
+        // The ODBC grammar lets a driver remove the braces around any keyword
+        // value; psqlODBC does it for Pwd and a few others only. A driver of
+        // the second kind must receive the value literally (which also means
+        // a ';' has no representation there, see the check above).
+        auto value = [&](const char* str) -> exlib::string {
+            if (options->psqlDriver)
+                return str;
+            return safe_conn_string(str);
+        };
+
         auto build_conn_str = [&](bool use_hostport) -> exlib::string {
             exlib::string conn_str;
 
@@ -265,7 +340,7 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
 
             conn_str.append(options->serverAttr);
             conn_str.append(1, '=');
-            conn_str.append(safe_conn_string(host));
+            conn_str.append(value(host));
             if (use_hostport && port > 0) {
                 char str_buf[32];
                 snprintf(str_buf, sizeof(str_buf), ":%d", port);
@@ -283,21 +358,36 @@ result_t odbc_connect(const char* driver, const char* host, int32_t port, const 
 
             if (*dbName) {
                 conn_str.append("Database=");
-                conn_str.append(safe_conn_string(dbName));
+                conn_str.append(value(dbName));
                 conn_str.append(1, ';');
             }
 
             if (*username) {
                 conn_str.append("Uid=");
-                conn_str.append(safe_conn_string(username));
+                conn_str.append(value(username));
                 conn_str.append(1, ';');
             }
 
             if (*password) {
                 conn_str.append("Pwd=");
-                conn_str.append(safe_conn_string(password));
+                // The URL decode above is the only decode the password may
+                // take. psqlODBC decodes Pwd as form data unless the value is
+                // brace-quoted, and removes those braces itself; the other
+                // ODBC drivers take the value literally (DM rejects the
+                // braces), so the forced quoting is a psql-only measure.
+                if (options->psqlDriver)
+                    conn_str.append(safe_password(password));
+                else
+                    conn_str.append(safe_conn_string(password));
                 conn_str.append(1, ';');
             }
+
+            // psqlODBC's Windows builds default LFConversion to on and rewrite
+            // every LF in a text value to CRLF. The runtime returns the stored
+            // value byte for byte, so turn the rewrite off (the option is
+            // already off by default on the other platforms).
+            if (options->psqlDriver)
+                conn_str.append("LFConversion=0;");
 
             if (options->trustCertificate)
                 conn_str.append("TrustServerCertificate=Yes;");
@@ -373,15 +463,21 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
         return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_message("odbc: no driver specified.");
 
     exlib::string pathname = u->pathname();
-    
+
+    // The database name is a URL path component: decode the percent escapes
+    // exactly once, like the userinfo above (node-postgres does the same).
+    // A SQLite path is not a URL and stays literal in openSQLite().
+    exlib::string dbName;
+    if (pathname.length() > 1)
+        Url::decodeURI(pathname.c_str() + 1, dbName);
+
     exlib::string username;
     exlib::string password;
     Url::decodeURI(u->username(), username);
     Url::decodeURI(u->password(), password);
 
     hr = odbc_connect(driver, u->hostname().c_str(), port,
-        username.c_str(), password.c_str(),
-        pathname.length() > 0 ? pathname.c_str() + 1 : "", conn, options);
+        username.c_str(), password.c_str(), dbName.c_str(), conn, options);
     if (hr.failed())
         return hr;
 
@@ -406,6 +502,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
 
     SQLRETURN hr;
     SQLHSTMT stmt;
+    result_t result;
 
     hr = SQLAllocStmt(conn, &stmt);
     if (hr < 0)
@@ -477,18 +574,18 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
                 for (int32_t i = 0; i < columns; i++) {
                     Variant v;
 
-                    hr = odbc_fetchValue(stmt, i + 1, types[i], v).code();
-                    if (hr < 0)
+                    result = odbc_fetchValue(stmt, i + 1, types[i], v);
+                    if (result.failed())
                         break;
 
                     res->rowValue(i, v);
                 }
-                if (hr < 0)
+                if (result.failed())
                     break;
 
                 res->endRow();
             }
-            if (hr < 0)
+            if (hr < 0 || result.failed())
                 break;
 
             more = SQLMoreResults(stmt) == SQL_SUCCESS;
@@ -504,14 +601,17 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
         } while (more);
     } while (0);
 
-    if (hr < 0)
-        hr = odbc_set_error(SQL_HANDLE_STMT, stmt).code();
-    else
-        hr = 0;
+    // Keep the diagnostic as a value: the SQLSTATE, the native code and the
+    // driver text are already collected by odbc_set_error(), and rebuilding
+    // a bare code here is what turned every server-side error into
+    // "[20009] Invalid procedure call.".  A column fetch error wins because
+    // it may describe the failing value more precisely than the handle.
+    if (!result.failed() && hr < 0)
+        result = odbc_set_error(SQL_HANDLE_STMT, stmt);
 
     SQLFreeStmt(stmt, SQL_DROP);
 
-    return result_t(hr);
+    return result;
 }
 
 // ---------------------------------------------------------------------------
