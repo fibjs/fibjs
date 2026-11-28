@@ -376,6 +376,62 @@ describe('ECMAScript modules', () => {
             assert.equal(m, m1);
         });
 
+        it("import cjs - a re-exported ES module namespace still has default", async () => {
+            var m = await import('./esm_files/cjs_reexport_bridge.cjs');
+            var req = require('./esm_files/cjs_reexport_bridge.cjs');
+
+            assert.equal(m.default, req,
+                'default must be the exports object, as Node reports it');
+            assert.equal(typeof m.connect, 'function');
+            assert.equal(m.connect, req.connect);
+        });
+
+        it("import cjs - a re-exported namespace is stable across imports", async () => {
+            var a = await import('./esm_files/cjs_reexport_bridge.cjs');
+            var b = await import('./esm_files/cjs_reexport_bridge.cjs');
+
+            assert.equal(a, b);
+        });
+
+        it("import cjs - an own default does not become the import() default", async () => {
+            var m = await import('./esm_files/cjs_esmodule_default.cjs');
+            var req = require('./esm_files/cjs_esmodule_default.cjs');
+
+            assert.equal(m.default, req,
+                'Node reports module.exports, not exports.default');
+            assert.equal(m.default.default, 42,
+                'the own default stays reachable through module.exports');
+            assert.equal(m.named, 'n');
+            assert.equal(m.__esModule, true);
+        });
+
+        it("import cjs - frozen exports get a cached wrapper", async () => {
+            var a = await import('./esm_files/cjs_frozen.cjs');
+            var b = await import('./esm_files/cjs_frozen.cjs');
+            var req = require('./esm_files/cjs_frozen.cjs');
+
+            assert.equal(a, b, 'repeated import() must return the same object');
+            assert.equal(a.default, req);
+            assert.equal(a.frozen, true);
+        });
+
+        it("import json - a primitive namespace is stable across imports", async () => {
+            var a = await import('./esm_files/json_primitive_num.json', { with: { type: 'json' } });
+            var b = await import('./esm_files/json_primitive_num.json', { with: { type: 'json' } });
+
+            assert.equal(a, b);
+            assert.equal(a.default, 42);
+        });
+
+        it("import cjs - a primitive exports value is the default", async () => {
+            var a = await import('./esm_files/cjs_primitive_null.cjs');
+            var b = await import('./esm_files/cjs_primitive_null.cjs');
+
+            assert.equal(a, b);
+            assert.equal('default' in a, true);
+            assert.equal(a.default, null);
+        });
+
         it("remove module when SyntaxError", async () => {
             var m;
             try {

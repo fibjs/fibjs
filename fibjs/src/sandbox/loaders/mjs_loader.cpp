@@ -16,86 +16,139 @@
 
 namespace fibjs {
 
+// A CommonJS export object that cannot take the `default` binding in place -
+// a frozen/sealed object, a primitive, an ES module namespace re-exported from
+// CJS, or an object that already declares its own `default` - gets a wrapper
+// carrying the named exports plus `default = module.exports`.
+//
+// Node gives every CommonJS module the same shape (default is always
+// module.exports) and the same namespace object on every import(). The wrapper
+// is therefore cached on the module record. Named exports are values
+// snapshotted when the wrapper is built: the synthetic module used for static
+// imports snapshots too, and Node's CommonJS namespace behaves the same way.
+static v8::Local<v8::Value> defaultWrapper(Isolate* isolate, v8::Local<v8::Object> module,
+    v8::Local<v8::Value> exports)
+{
+    v8::Local<v8::Context> _context = isolate->context();
+
+    v8::Local<v8::Private> strCached = v8::Private::ForApi(
+        isolate->m_isolate, isolate->NewString("importDefaultWrapper"));
+    JSValue cached;
+    if (!module.IsEmpty())
+        cached = module->GetPrivate(_context, strCached);
+    if (!cached.IsEmpty() && cached->IsObject())
+        return cached;
+
+    // Enumeration and value reads can run proxy traps. A throw from a trap is
+    // not import()'s failure, so it must not abort the import; a wrapper with
+    // the names that could be read is better than no namespace at all.
+    TryCatch try_catch;
+
+    v8::Local<v8::Object> wrapper = v8::Object::New(isolate->m_isolate);
+
+    if (exports->IsObject()) {
+        v8::Local<v8::Object> src = exports.As<v8::Object>();
+        v8::Local<v8::String> strDefault = isolate->NewString("default");
+        v8::Local<v8::Array> names;
+        if (src->GetPropertyNames(_context).ToLocal(&names)) {
+            for (uint32_t i = 0, count = names->Length(); i < count; i++) {
+                v8::Local<v8::Value> key;
+                if (!names->Get(_context, i).ToLocal(&key) || !key->IsName())
+                    continue;
+                // The binding import() exposes as `default` is module.exports,
+                // never the exports object's own property of that name.
+                if (key->StrictEquals(strDefault))
+                    continue;
+                v8::Local<v8::Value> value = src->Get(_context, key)
+                                                 .FromMaybe(v8::Local<v8::Value>());
+                if (value.IsEmpty())
+                    continue;
+                // Define, not Set: a `__proto__` key from a JSON module must
+                // become an own export, not change the wrapper's prototype.
+                wrapper->DefineOwnProperty(_context, key.As<v8::Name>(), value, v8::None).IsJust();
+            }
+        }
+    }
+
+    wrapper->DefineOwnProperty(_context, isolate->NewString("default"), exports,
+        (v8::PropertyAttribute)(v8::DontEnum))
+        .FromMaybe(false);
+
+    if (!module.IsEmpty())
+        module->SetPrivate(_context, strCached, wrapper).IsJust();
+
+    return wrapper;
+}
+
 // import() of CommonJS (and of a builtin) must expose the exports object as the
-// `default` binding, the way Node's CJS namespace does. This loader hands the
-// exports object itself back, so import() and require() stay the same object
-// (builtins guarantee that) and the binding is added to it in place.
+// `default` binding, the way Node's CommonJS namespace does:
+// ns.default === module.exports for every shape of exports. Plain export
+// objects get the binding added in place, so import() and require() stay the
+// same object (builtins rely on that); shapes that cannot be decorated get a
+// cached wrapper (see defaultWrapper).
 //
 // The property is non-enumerable: it exists for `ns.default`, not for the
 // module's own shape - spreading or JSON.stringify()-ing a CommonJS export
 // object must not grow a key that is only meaningful inside import().
-static v8::Local<v8::Value> withDefaultExport(Isolate* isolate, v8::Local<v8::Value> exports)
+//
+// isCJS is what resove_module() decided for the module record. A real ES module
+// namespace is returned untouched: importing an ES module must keep exposing
+// that module's own `default`, not the namespace object.
+static v8::Local<v8::Value> withDefaultExport(Isolate* isolate, v8::Local<v8::Object> module,
+    v8::Local<v8::Value> exports, bool isCJS)
 {
-    v8::Local<v8::Context> _context = isolate->context();
-
-    // A real namespace owns its bindings; nothing to add.
-    if (exports->IsModuleNamespaceObject())
+    if (!isCJS)
         return exports;
 
+    v8::Local<v8::Context> _context = isolate->context();
     v8::Local<v8::String> strDefault = isolate->NewString("default");
 
-    // A copy of `exports` that also carries the `default` binding. Reached when
-    // exports has no shape to add to: a primitive, or an object that refuses
-    // the property (sealed, frozen, or a proxy that says no).
-    auto wrap = [&]() -> v8::Local<v8::Value> {
-        v8::Local<v8::Object> wrapper = v8::Object::New(isolate->m_isolate);
-
-        if (exports->IsObject()) {
-            v8::Local<v8::Object> src = exports.As<v8::Object>();
-            v8::Local<v8::Array> names;
-            if (src->GetOwnPropertyNames(_context).ToLocal(&names)) {
-                for (uint32_t i = 0, count = names->Length(); i < count; i++) {
-                    v8::Local<v8::Value> key;
-                    if (!names->Get(_context, i).ToLocal(&key))
-                        continue;
-                    v8::Local<v8::Value> value = src->Get(_context, key)
-                                                     .FromMaybe(v8::Local<v8::Value>());
-                    if (value.IsEmpty())
-                        continue;
-                    wrapper->Set(_context, key, value).IsJust();
-                }
-            }
-        }
-
-        wrapper->DefineOwnProperty(_context, strDefault, exports,
-            (v8::PropertyAttribute)(v8::DontEnum))
-            .FromMaybe(false);
-
-        return wrapper;
-    };
-
-    // Primitives cannot carry the binding at all (a JSON module holding a
-    // number, string or null boils down to one).
     if (!exports->IsObject())
-        return wrap();
+        return defaultWrapper(isolate, module, exports);
 
     v8::Local<v8::Object> obj = exports.As<v8::Object>();
 
-    // Each probe below may run a proxy trap, and a trap may throw. A throw from
-    // a trap while we decorate the namespace is not import()'s failure, so the
-    // guard swallows it and the copy (which cannot throw) is used instead.
-    // Destroying the TryCatch clears whatever exception it caught.
-    TryCatch try_catch;
+    bool has_own_default = false;
+    bool default_is_exports = false;
 
-    // A transpiled CommonJS module (__esModule) already declares its own
-    // `default`; the static import path treats such an object as
-    // namespace-like and takes obj.default, so do not shadow it here.
-    v8::Maybe<bool> has_own = obj->HasOwnProperty(_context, strDefault);
-    if (has_own.IsJust() && has_own.FromJust())
+    // Each probe can run a proxy trap and throw. A throw here is not import()'s
+    // failure: fall through to the wrapper, which never mutates exports.
+    {
+        TryCatch try_catch;
+
+        v8::Maybe<bool> has_own = obj->HasOwnProperty(_context, strDefault);
+        if (has_own.IsJust() && has_own.FromJust() && !try_catch.HasCaught()) {
+            v8::Local<v8::Value> own = obj->Get(_context, strDefault)
+                                          .FromMaybe(v8::Local<v8::Value>());
+            if (!own.IsEmpty() && !try_catch.HasCaught()) {
+                has_own_default = true;
+                default_is_exports = own->StrictEquals(exports);
+            }
+        }
+    }
+
+    // `default` already points at the exports object itself: an earlier import()
+    // decorated it in place, or the module exports a self-referencing default.
+    // Either way it is exactly the binding Node exposes.
+    if (default_is_exports)
         return exports;
 
-    if (!try_catch.HasCaught()) {
-        // Add the binding in place so import() and require() keep returning
-        // the very same object (builtins rely on that). A sealed or frozen
-        // export object refuses, and then the copy is the only way
-        // `ns.default` still works.
+    // An exports object with its own `default` cannot be decorated in place
+    // without changing what require() returns. Node still reports module.exports
+    // as the default binding, so it needs the wrapper.
+    if (!has_own_default) {
+        TryCatch try_catch;
+
+        // Add the binding in place so import() and require() keep returning the
+        // very same object (builtins rely on that). A sealed or frozen export
+        // object refuses, and then the wrapper is the only way ns.default works.
         v8::Maybe<bool> defined = obj->DefineOwnProperty(_context, strDefault, exports,
             (v8::PropertyAttribute)(v8::DontEnum));
         if (defined.IsJust() && defined.FromJust() && !try_catch.HasCaught())
             return exports;
     }
 
-    return wrap();
+    return defaultWrapper(isolate, module, exports);
 }
 
 class esm_importer : public object_base {
@@ -266,10 +319,11 @@ public:
         obj_ptr<Buffer_base> data;
         v8::Local<v8::Value> exports;
         v8::Local<v8::Value> pendding;
+        v8::Local<v8::Object> mod_record;
         bool isCJS = false;
         bool loaded = false;
 
-        hr = resove_module(id, base, data, exports, pendding, isCJS, loaded);
+        hr = resove_module(id, base, data, exports, pendding, isCJS, loaded, mod_record);
         if (hr.failed()) {
             // When hr == CALL_E_JAVASCRIPT, a V8 exception is already pending
             // (e.g. the CJS module threw at runtime). Calling ThrowResult would
@@ -289,9 +343,10 @@ public:
         // that must not be mistaken for "not loaded yet" and loaded twice.
         if (loaded) {
             // For cached modules, directly return the exports. A CommonJS
-            // export object reaches import() as the namespace itself, so it
-            // gets the `default` binding here (see withDefaultExport).
-            v8::Local<v8::Value> ns = withDefaultExport(m_isolate, exports);
+            // export object reaches import() as the namespace itself and gets
+            // the `default` binding here; a real ES module namespace is
+            // returned untouched (see withDefaultExport).
+            v8::Local<v8::Value> ns = withDefaultExport(m_isolate, mod_record, exports, isCJS);
 
             v8::Local<v8::Promise::Resolver> resolver;
             if (!v8::Promise::Resolver::New(_context).ToLocal(&resolver))
@@ -361,7 +416,8 @@ public:
 private:
     // For dynamic import: check pendding promise and return it if module is being loaded
     result_t resove_module(exlib::string& id, exlib::string base, obj_ptr<Buffer_base>& data,
-        v8::Local<v8::Value>& exports, v8::Local<v8::Value>& pendding, bool& isCJS, bool& loaded)
+        v8::Local<v8::Value>& exports, v8::Local<v8::Value>& pendding, bool& isCJS, bool& loaded,
+        v8::Local<v8::Object>& mod_out)
     {
         result_t hr;
 
@@ -417,6 +473,10 @@ private:
             if (hr.failed())
                 return hr;
 
+            // The record is where import() caches the namespace it hands back
+            // (see defaultWrapper), so the caller needs the same object the
+            // module map holds.
+            mod_out = mod;
             loaded = true;
             return result_t();
         }
