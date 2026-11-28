@@ -186,7 +186,7 @@ void Variant::parseInt(const char* str, int32_t len)
 
 void Variant::parseNumber(const char* str, int32_t len)
 {
-    int64_t digit, frac = 0, exp = 0;
+    double digit = 0, frac = 0, exp = 0;
     double v, div = 1.0;
     bool bNeg, bExpNeg;
     int32_t pos = 0;
@@ -196,14 +196,19 @@ void Variant::parseNumber(const char* str, int32_t len)
     if (bNeg)
         next(len, pos);
 
-    digit = getInt(str, len, pos);
+    // Accumulate in double: a digit string longer than int64 is still a valid
+    // SQL number, and overflowing a signed integer here is undefined behavior.
+    while ((ch = pick(str, len, pos)) && ch >= '0' && ch <= '9') {
+        digit = digit * 10 + (ch - '0');
+        next(len, pos);
+    }
 
     ch = pick(str, len, pos);
     if (ch == '.') {
         next(len, pos);
 
         while ((ch = pick(str, len, pos)) && ch >= '0' && ch <= '9') {
-            frac = frac * 10 + ch - '0';
+            frac = frac * 10 + (ch - '0');
             div *= 10;
             next(len, pos);
         }
@@ -221,7 +226,10 @@ void Variant::parseNumber(const char* str, int32_t len)
             next(len, pos);
         }
 
-        exp = getInt(str, len, pos);
+        while ((ch = pick(str, len, pos)) && ch >= '0' && ch <= '9') {
+            exp = exp * 10 + (ch - '0');
+            next(len, pos);
+        }
         if (bExpNeg)
             exp = -exp;
     }
@@ -232,7 +240,7 @@ void Variant::parseNumber(const char* str, int32_t len)
             v = -v;
 
         if (exp != 0)
-            v *= pow((double)10, (int32_t)exp);
+            v *= pow((double)10, exp);
 
         set_type(VT_Number);
         m_Val.dblVal = v;
@@ -244,7 +252,7 @@ void Variant::parseNumber(const char* str, int32_t len)
         digit = -digit;
 
     set_type(VT_Number);
-    m_Val.dblVal = (double)digit;
+    m_Val.dblVal = digit;
 }
 
 #define STRING_BUF_SIZE 1024
