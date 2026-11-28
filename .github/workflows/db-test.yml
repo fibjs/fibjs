@@ -56,6 +56,12 @@ jobs:
         env:
           FIBJS_ASYNC_STATE_CHECK: '1'
         run: . ./.github/workflows/build.sh
+      # actions-env.sh prunes the hosted tool cache on Linux, so install Node
+      # after the build step rather than before it.
+      - name: Setup Node.js for fib-orm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - name: Run database tests
         shell: bash
         run: bash ./.github/workflows/db-test.sh
@@ -81,6 +87,12 @@ jobs:
         env:
           FIBJS_ASYNC_STATE_CHECK: '1'
         run: bash build -j2 arm64 darwin release ci
+      # actions-env.sh prunes the hosted tool cache on Linux only; keeping the
+      # step here makes the three jobs identical.
+      - name: Setup Node.js for fib-orm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - name: Run database tests
         shell: bash
         run: bash ./.github/workflows/db-test.sh
@@ -111,6 +123,10 @@ jobs:
         env:
           FIBJS_ASYNC_STATE_CHECK: '1'
         run: bash build -j2 x64 win32 release ci
+      - name: Setup Node.js for fib-orm
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
       - name: Run database tests
         shell: bash
         run: bash ./.github/workflows/db-test.sh

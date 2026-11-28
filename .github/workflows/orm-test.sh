@@ -62,18 +62,29 @@ echo "fib-orm commit: $(git -C "$FIB_ORM_DIR" rev-parse --short HEAD)"
 cd "$FIB_ORM_DIR"
 
 echo "=== Installing fib-orm dependencies ==="
+if ! command -v npm >/dev/null 2>&1; then
+    echo "ERROR: npm is required to install fib-orm dependencies"
+    exit 1
+fi
 if [ -f package-lock.json ]; then
     npm ci --no-audit --no-fund || npm install --no-audit --no-fund
 else
     npm install --no-audit --no-fund
 fi
 
-# fib-orm 2.x runs the TypeScript sources directly; older revisions still need
-# an ftsc build. Detect the layout instead of forcing one workflow on both.
-if grep -Eq '"main"[[:space:]]*:[[:space:]]*"src/orm/index.ts"' package.json; then
+# fib-orm 2.x and 3.x run the TypeScript sources directly; older revisions
+# still need an ftsc build. Detect the entry instead of forcing one workflow
+# on both layouts.
+if grep -Eq '"main"[[:space:]]*:[[:space:]]*"(src/orm/index\.ts|index\.js)"' package.json; then
     echo "=== Checking fib-orm sources (fibjs --check) ==="
     "$FIBJS_BIN" --check
 else
+    if [ ! -f node_modules/fib-typify/bin/ftsc.js ]; then
+        echo "ERROR: unsupported fib-orm package layout (main is not src/orm/index.ts or index.js)"
+        echo "       no node_modules/fib-typify/bin/ftsc.js for the legacy build either"
+        exit 1
+    fi
+
     echo "=== Building fib-orm (legacy layout) ==="
     # `npm run build` invokes ftsc through its `#!/usr/bin/env fibjs` shebang.
     # Run it with the binary built by fibjs instead of relying on PATH.
