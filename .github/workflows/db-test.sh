@@ -1,9 +1,12 @@
 #!/bin/bash
 # fibjs 全数据库覆盖测试脚本
-# 支持 Linux (Docker Compose 5 库) / macOS (brew PG+MySQL) / Windows (预装 PG+MySQL, Docker MSSQL)
+# 支持 Linux (Docker Compose 6 库) / macOS (brew PG+MySQL) / Windows (预装 PG+MySQL, Docker MSSQL)
+# 每个平台在 fibjs 驱动测试后还会 clone fib-orm 并运行跨库 ORM 冒烟测试。
 # 
 # 环境变量:
 #   BUILD_OS, BUILD_ARCH, BUILD_TYPE - 由 actions-env.sh 设置
+#   FIBJS_SKIP_ORM_TESTS=1           - 跳过 fib-orm 部分（本地调试用）
+#   FIB_ORM_REPO / FIB_ORM_REF       - 指定 fib-orm 仓库与分支/标签/SHA
 
 set -e
 
@@ -34,7 +37,7 @@ echo "=== Platform: $OS ==="
 echo "=== Binary: $BIN ==="
 
 # ============================================================
-# Linux: Docker Compose 启动全部 5 个数据库
+# Linux: Docker Compose 启动全部 6 个数据库
 # ============================================================
 if [ "$OS" = "linux" ]; then
     echo "=== Starting database containers ==="
@@ -111,7 +114,36 @@ if [ "$OS" = "linux" ]; then
     fi
     export LD_LIBRARY_PATH="$DM_DRV_DIR:${LD_LIBRARY_PATH}"
 
-    # 全部 6 个数据库 (mysql57 验证低版本认证协议 mysql_native_password; psql_kb 为 KingbaseES V9)
+    echo "=== Extracting KingbaseES V9 ODBC driver ==="
+    # KODBC 不随 V9 精简镜像发布；官方下载中心的接口驱动区提供 V9 的
+    # X64_Linux_ODBC.tar。OSS 有防盗链，必须带官网 Referer。下载失败时
+    # 只跳过 kingbase 引擎用例（psql_kb 仍覆盖同一实例）。
+    KB_ODBC_DIR="${RUNNER_TEMP:-/tmp}/kingbase-odbc"
+    KB_ODBC_TAR="${RUNNER_TEMP:-/tmp}/kingbase-odbc.tar"
+    KB_ODBC_URL="https://kingbase.oss-cn-beijing.aliyuncs.com/upload/KESV9-baseline/allmode/V009R001C010/V009R001C010B0004_interface/ODBC/KingbaseES_V009R001C010B0004_X64_Linux_ODBC.tar"
+    if curl -fsSL -H 'Referer: https://www.kingbase.com.cn/' -o "$KB_ODBC_TAR" "$KB_ODBC_URL"; then
+        rm -rf "$KB_ODBC_DIR"
+        mkdir -p "$KB_ODBC_DIR"
+        tar -xf "$KB_ODBC_TAR" -C "$KB_ODBC_DIR"
+
+        # 装进 unixODBC 的默认驱动目录，Driver=kdbodbcw.so 才能按名字直接
+        # 解析（与正常安装一致），不需要在连接串里写 ?Driver= 全路径。
+        case "$(uname -m)" in
+            aarch64|arm64) KB_ODBC_DEST=/usr/lib/aarch64-linux-gnu/odbc ;;
+            *)             KB_ODBC_DEST=/usr/lib/x86_64-linux-gnu/odbc ;;
+        esac
+        if sudo mkdir -p "$KB_ODBC_DEST" && sudo cp -a "$KB_ODBC_DIR/odbc/." "$KB_ODBC_DEST/"; then
+            echo "Kingbase ODBC driver installed: $KB_ODBC_DEST/kdbodbcw.so"
+            export FIBJS_TEST_KINGBASE="kingbase://SYSTEM:12345678ab@localhost:54321/test"
+        else
+            echo "WARNING: Kingbase ODBC driver installation failed, kingbase engine tests will be skipped"
+        fi
+    else
+        echo "WARNING: Kingbase ODBC driver download failed, kingbase engine tests will be skipped"
+    fi
+
+    # 全部 6 个数据库 (mysql57 验证低版本认证协议 mysql_native_password; psql_kb 为 psql 引擎连 KingbaseES V9,
+    # kingbase 为 KODBC 引擎连同一实例)
     export FIBJS_TEST_PSQL="psql://fibjs:fibjs_test@localhost:5432/test"
     export FIBJS_TEST_PSQL_KB="psql://SYSTEM:12345678ab@localhost:54321/test"
     export FIBJS_TEST_MYSQL="mysql://root:root_test@localhost:3306/test"
@@ -339,10 +371,17 @@ echo "FIBJS_TEST_MYSQL=${FIBJS_TEST_MYSQL:-'(not set)'}"
 echo "FIBJS_TEST_MYSQL57=${FIBJS_TEST_MYSQL57:-'(not set)'}"
 echo "FIBJS_TEST_MSSQL=${FIBJS_TEST_MSSQL:-'(not set)'}"
 echo "FIBJS_TEST_DM=${FIBJS_TEST_DM:-'(not set)'}"
+echo "FIBJS_TEST_KINGBASE=${FIBJS_TEST_KINGBASE:-'(not set)'}"
 
 echo ""
 echo "=== Running database tests ==="
 $BIN test/db_test.js
+
+if [ "${FIBJS_SKIP_ORM_TESTS:-0}" != "1" ]; then
+    echo ""
+    echo "=== Running fib-orm database smoke tests ==="
+    FIBJS_BIN="$(pwd)/$BIN" bash ./.github/workflows/orm-test.sh
+fi
 
 echo ""
 echo "=== Database tests completed successfully ==="

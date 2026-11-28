@@ -13,14 +13,30 @@ on:
       - 'docker/docker-compose.db-test.yml'
       - '.github/workflows/db-test.yml'
       - '.github/workflows/db-test.sh'
+      - '.github/workflows/orm-test.sh'
   schedule:
     # 每日凌晨 2:00 UTC (北京时间 10:00) 运行
     - cron: '0 2 * * *'
   workflow_dispatch:
-    # 允许手动触发
+    # 允许手动触发；可指定 fib-orm 的仓库与分支/标签/SHA，
+    # 便于在 fib-orm 改动合入前验证。
+    inputs:
+      fib_orm_repo:
+        description: 'fib-orm repository URL'
+        required: false
+        default: 'https://github.com/fibjs/fib-orm.git'
+      fib_orm_ref:
+        description: 'fib-orm branch, tag or commit SHA'
+        required: false
+        default: 'master'
+
+env:
+  FIB_ORM_REPO: "${{ github.event.inputs.fib_orm_repo || 'https://github.com/fibjs/fib-orm.git' }}"
+  FIB_ORM_REF: "${{ github.event.inputs.fib_orm_ref || 'master' }}"
 
 jobs:
-  # Linux amd64: Docker Compose 启动全部 6 个 (PG/KingbaseES V9/MySQL/MySQL5.7/MSSQL/DM)
+  # Linux amd64: Docker Compose 启动全部 6 个 (PG/KingbaseES V9/MySQL/MySQL5.7/MSSQL/DM)，
+  # fibjs 驱动测试后 clone fib-orm，逐库运行 ORM 冒烟测试。
   db-test-linux:
     runs-on: ubuntu-22.04
     steps:
@@ -44,7 +60,8 @@ jobs:
         shell: bash
         run: bash ./.github/workflows/db-test.sh
 
-  # macOS arm64: brew 启动 PG + MySQL, MSSQL/DM 暂不支持
+  # macOS arm64: brew 启动 PG + MySQL, MSSQL/DM 暂不支持；
+  # fib-orm 在 sqlite/mysql/postgres 上运行冒烟测试。
   db-test-darwin:
     runs-on: macos-15
     steps:
@@ -68,7 +85,8 @@ jobs:
         shell: bash
         run: bash ./.github/workflows/db-test.sh
 
-  # Windows x64: 预装 PG + MySQL (启动服务), Docker 启动 MSSQL, DM 跳过
+  # Windows x64: 预装 PG + MySQL (启动服务), Docker 启动 MSSQL, DM 跳过；
+  # fib-orm 在 sqlite/mysql/postgres/mssql 上运行冒烟测试。
   # 必须和 build.yml 使用同一个 runner 镜像 (windows-latest):
   # ci 构建链接的是 fibjs_vender 预编译 dist (libv8/libdatachannel),
   # 它在 windows-latest 的 MSVC STL 下编译, 会引用 __std_rotate、
