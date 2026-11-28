@@ -487,7 +487,19 @@ result_t odbc_connect(exlib::string connString, const char* driver, int32_t port
 // Shared column value fetch (used by execute and Statement cursor;
 // implemented later in this file)
 static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
-    Variant& v);
+    const exlib::string& typeName, Variant& v);
+static bool odbc_type_name_is(const exlib::string& typeName, const char* name);
+static bool odbc_type_name_contains(const exlib::string& typeName, const char* text);
+
+static void odbc_get_type_name(SQLHSTMT stmt, int32_t col, exlib::string& name)
+{
+    SQLSMALLINT buflen = 0;
+    SQLWCHAR buf[SQL_MAX_COLUMN_NAME_LEN];
+    SQLRETURN hr = SQLColAttributeW(stmt, col, SQL_DESC_TYPE_NAME, buf,
+        SQL_MAX_COLUMN_NAME_LEN * sizeof(SQLWCHAR), &buflen, NULL);
+    if (hr >= 0 && buflen > 0)
+        name = utf16to8String((const char16_t*)buf, buflen / sizeof(SQLWCHAR));
+}
 
 result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_ptr<NArray>& retVal, AsyncHandle ac)
 {
@@ -519,6 +531,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
         do {
             obj_ptr<DBResult> res;
             std::vector<SQLLEN> types;
+            std::vector<exlib::string> typeNames;
             SQLLEN len;
             SQLSMALLINT columns = 0;
             SQLLEN affected;
@@ -532,6 +545,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
                 break;
 
             types.resize(columns);
+            typeNames.resize(columns);
             res = new DBResult(columns, affected);
             for (int32_t i = 0; i < columns; i++) {
                 SQLSMALLINT buflen;
@@ -547,19 +561,11 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
                 if (hr < 0)
                     break;
 
-                if (types[i] == SQL_VARCHAR) {
-                    SQLSMALLINT buflen;
-                    SQLWCHAR buf[SQL_MAX_COLUMN_NAME_LEN];
-
-                    hr = SQLColAttributeW(stmt, i + 1, SQL_DESC_TYPE_NAME, buf,
-                        SQL_MAX_COLUMN_NAME_LEN * sizeof(SQLWCHAR), &buflen, NULL);
-                    if (hr < 0)
-                        break;
-
-                    exlib::string typeName = utf16to8String((const char16_t*)buf, buflen / sizeof(SQLWCHAR));
-                    if (typeName == "boolean" || typeName == "bool")
-                        types[i] = SQL_BIT;
-                }
+                odbc_get_type_name(stmt, i + 1, typeNames[i]);
+                if (types[i] == SQL_VARCHAR
+                    && (odbc_type_name_is(typeNames[i], "boolean")
+                        || odbc_type_name_is(typeNames[i], "bool")))
+                    types[i] = SQL_BIT;
             }
             if (hr < 0)
                 break;
@@ -574,7 +580,7 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
                 for (int32_t i = 0; i < columns; i++) {
                     Variant v;
 
-                    result = odbc_fetchValue(stmt, i + 1, types[i], v);
+                    result = odbc_fetchValue(stmt, i + 1, types[i], typeNames[i], v);
                     if (result.failed())
                         break;
 
@@ -619,8 +625,626 @@ result_t odbc_execute(void* conn, int32_t* activeStmt, exlib::string sql, obj_pt
 // ---------------------------------------------------------------------------
 
 // Fetch one column value by type (shared by execute and Statement cursor)
-static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
+#ifndef SQL_SS_TIMESTAMPOFFSET
+#define SQL_SS_TIMESTAMPOFFSET -155
+#endif
+#ifndef SQL_SS_TIME2
+#define SQL_SS_TIME2 -154
+#endif
+
+static result_t odbc_fetch_text(SQLHSTMT stmt, int32_t col, Variant& v)
+{
+    char buf[4096];
+    SQLLEN len = 0;
+    SQLRETURN hr = SQLGetData(stmt, col, SQL_C_CHAR, buf, sizeof(buf), &len);
+    if (hr < 0)
+        return odbc_set_error(SQL_HANDLE_STMT, stmt);
+    if (len == SQL_NULL_DATA)
+        v.setNull();
+    else if (len >= (SQLLEN)sizeof(buf))
+        return result_t::make(CALL_E_INTERNAL).with_type_name(errtype::kError)
+            .with_code("ERR_INTERNAL").with_message("odbc: text value is too large.");
+    else
+        v = exlib::string(buf, (int32_t)len);
+    return result_t();
+}
+
+static bool odbc_type_name_is(const exlib::string& typeName, const char* name)
+{
+    return !qstricmp(typeName.c_str(), name);
+}
+
+static bool odbc_type_name_contains(const exlib::string& typeName, const char* text)
+{
+    return typeName.find(text) != exlib::string::npos;
+}
+
+static bool odbc_is_timezone_timestamp(const exlib::string& typeName)
+{
+    if (odbc_type_name_is(typeName, "timetz")
+        || odbc_type_name_contains(typeName, "time with time zone"))
+        return false;
+
+    return odbc_type_name_is(typeName, "timestamptz")
+        || odbc_type_name_is(typeName, "datetimeoffset")
+        || odbc_type_name_contains(typeName, "with time zone")
+        || odbc_type_name_contains(typeName, "tz");
+}
+
+static result_t odbc_fetch_timezone_timestamp(SQLHSTMT stmt, int32_t col, Variant& v)
+{
+    exlib::string text;
+    result_t hr = odbc_fetch_text(stmt, col, v);
+    if (hr.failed() || v.type() == Variant::VT_Null)
+        return hr;
+
+    text = v.string();
+
+    int32_t year, month, day, hour, minute, second;
+    char sep;
+    if (sscanf(text.c_str(), "%d-%d-%d%c%d:%d:%d", &year, &month, &day,
+            &sep, &hour, &minute, &second)
+        != 7)
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError)
+            .with_code("ERR_INVALID_DATA").with_format("odbc: invalid timestamp with time zone '%s'.", text.c_str());
+
+    int32_t millisecond = 0;
+    const char* p = text.c_str();
+    const char* dot = strchr(p, '.');
+    if (dot && dot > p) {
+        const char* q = dot + 1;
+        int32_t scale = 100;
+        for (int32_t i = 0; i < 3 && qisdigit(*q); i++, q++) {
+            millisecond += (*q - '0') * scale;
+            scale /= 10;
+        }
+    }
+
+    // ODBC text for a timezone-aware value normally carries an explicit
+    // offset. psqlODBC prints the session timezone (UTC by default) without
+    // one, so an offset-less value is treated as UTC rather than local.
+    int32_t offsetMinutes = 0;
+    const char* offset = strpbrk(p + 10, "+-Zz");
+    if (offset) {
+        if (*offset == 'Z' || *offset == 'z')
+            offsetMinutes = 0;
+        else {
+            int32_t sign = *offset == '-' ? -1 : 1;
+            int32_t hh = 0, mm = 0;
+            if (sscanf(offset + 1, "%d:%d", &hh, &mm) >= 1)
+                offsetMinutes = sign * (hh * 60 + mm);
+        }
+    }
+
+    date_t d;
+    d.create(year, month, day, hour, minute, second, millisecond);
+    if (d.empty())
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError)
+            .with_code("ERR_INVALID_DATA").with_format("odbc: invalid timestamp with time zone '%s'.", text.c_str());
+
+    v = date_t(d.date() - offsetMinutes * 60000.0);
+    return result_t();
+}
+
+// ---------------------------------------------------------------------------
+// Special logical types: JSON, UUID, arrays and intervals
+//
+// ODBC exposes no SQL type for JSON/arrays, only the backend type name from
+// SQL_DESC_TYPE_NAME.  The helpers below normalize the textual representation
+// reported by PostgreSQL/Kingbase (json, uuid, _int4, interval, ...).
+// ---------------------------------------------------------------------------
+
+static bool odbc_is_json_type(const exlib::string& typeName)
+{
+    return odbc_type_name_is(typeName, "json")
+        || odbc_type_name_is(typeName, "jsonb");
+}
+
+static bool odbc_is_uuid_type(const exlib::string& typeName)
+{
+    return odbc_type_name_is(typeName, "uuid")
+        || odbc_type_name_is(typeName, "uniqueidentifier");
+}
+
+static bool odbc_is_array_type(const exlib::string& typeName)
+{
+    return typeName.length() > 0
+        && (typeName[0] == '_'
+            || odbc_type_name_contains(typeName, "[]"));
+}
+
+static exlib::string odbc_array_element_type(const exlib::string& typeName)
+{
+    exlib::string type = typeName;
+
+    if (type.length() > 1 && type[0] == '_')
+        return type.substr(1);
+
+    exlib::string::size_type pos = type.find("[]");
+    if (pos != exlib::string::npos)
+        return type.substr(0, pos);
+
+    return type;
+}
+
+static void odbc_array_skip_space(const char*& p)
+{
+    while (*p && qisspace(*p))
+        p++;
+}
+
+static void odbc_array_scalar(exlib::string token, bool quoted,
+    const exlib::string& elementType, Variant& v)
+{
+    if (!quoted && !qstricmp(token.c_str(), "NULL")) {
+        v.setNull();
+        return;
+    }
+
+    if (odbc_is_json_type(elementType)) {
+        v.setJSON(token);
+        return;
+    }
+
+    if (odbc_is_uuid_type(elementType)) {
+        exlib::qstrlwr(token);
+        v = token;
+        return;
+    }
+
+    if (odbc_type_name_is(elementType, "bool")
+        || odbc_type_name_is(elementType, "boolean")) {
+        v = !qstricmp(token.c_str(), "t")
+            || !qstricmp(token.c_str(), "true")
+            || !qstricmp(token.c_str(), "1");
+        return;
+    }
+
+    if (odbc_type_name_is(elementType, "int8")
+        || odbc_type_name_is(elementType, "bigint")) {
+        v = token;
+        return;
+    }
+
+    if (odbc_type_name_is(elementType, "int2")
+        || odbc_type_name_is(elementType, "int4")
+        || odbc_type_name_is(elementType, "smallint")
+        || odbc_type_name_is(elementType, "integer")
+        || odbc_type_name_is(elementType, "serial")) {
+        v.parseNumber(token.c_str(), (int32_t)token.length());
+        return;
+    }
+
+    if (odbc_type_name_is(elementType, "numeric")
+        || odbc_type_name_is(elementType, "decimal")
+        || odbc_type_name_is(elementType, "money")) {
+        v = token;
+        return;
+    }
+
+    if (odbc_type_name_is(elementType, "float4")
+        || odbc_type_name_is(elementType, "float8")
+        || odbc_type_name_is(elementType, "real")
+        || odbc_type_name_is(elementType, "float")
+        || odbc_type_name_is(elementType, "double precision")
+        || odbc_type_name_is(elementType, "double")) {
+        v.parseNumber(token.c_str(), (int32_t)token.length());
+        return;
+    }
+
+    if (odbc_type_name_is(elementType, "date")
+        || odbc_type_name_is(elementType, "time")
+        || odbc_type_name_is(elementType, "timetz")) {
+        v = token;
+        return;
+    }
+
+    if (odbc_type_name_is(elementType, "datetime")
+        || odbc_type_name_is(elementType, "timestamp")) {
+        v.parseDate(token.c_str(), (int32_t)token.length());
+        return;
+    }
+
+    // The PostgreSQL ODBC driver reports array columns as "unknown", losing
+    // the element type.  Keep unquoted integer literals as numbers; quoted
+    // and decimal values stay strings so no precision is lost silently.
+    if ((elementType.empty()
+            || odbc_type_name_is(elementType, "unknown"))
+        && !quoted) {
+        const char* p = token.c_str();
+        bool integer = true;
+        bool hasDigit = false;
+
+        if (*p == '-' || *p == '+')
+            p++;
+
+        for (; *p; p++) {
+            if (*p < '0' || *p > '9') {
+                integer = false;
+                break;
+            }
+            hasDigit = true;
+        }
+
+        if (integer && hasDigit && token.length() < 19) {
+            v.parseNumber(token.c_str(), (int32_t)token.length());
+            return;
+        }
+    }
+
+    v = token;
+}
+
+static result_t odbc_array_value(const char*& p, const exlib::string& elementType,
     Variant& v)
+{
+    odbc_array_skip_space(p);
+    if (*p != '{')
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError)
+            .with_code("ERR_INVALID_DATA").with_message("odbc: invalid array literal.");
+
+    p++;
+    obj_ptr<NArray> arr = new NArray();
+
+    while (true) {
+        odbc_array_skip_space(p);
+        if (!*p)
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError)
+                .with_code("ERR_INVALID_DATA").with_message("odbc: unterminated array literal.");
+
+        if (*p == '}') {
+            p++;
+            break;
+        }
+
+        if (*p == '{') {
+            Variant child;
+            result_t hr = odbc_array_value(p, elementType, child);
+            if (hr.failed())
+                return hr;
+            arr->append(child);
+        } else {
+            exlib::string token;
+            bool quoted = false;
+
+            if (*p == '"') {
+                quoted = true;
+                p++;
+                while (*p && *p != '"') {
+                    if (*p == '\\' && p[1])
+                        p++;
+                    token.append(1, *p++);
+                }
+                if (*p == '"')
+                    p++;
+            } else {
+                const char* start = p;
+                while (*p && *p != ',' && *p != '}')
+                    p++;
+                const char* end = p;
+                while (end > start && qisspace(end[-1]))
+                    end--;
+                while (start < end && qisspace(*start))
+                    start++;
+                token = exlib::string(start, (int32_t)(end - start));
+            }
+
+            Variant item;
+            odbc_array_scalar(token, quoted, elementType, item);
+            arr->append(item);
+        }
+
+        odbc_array_skip_space(p);
+        if (*p == ',') {
+            p++;
+            continue;
+        }
+        if (*p == '}') {
+            p++;
+            break;
+        }
+
+        return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError)
+            .with_code("ERR_INVALID_DATA").with_message("odbc: invalid array literal.");
+    }
+
+    v = arr;
+    return result_t();
+}
+
+// PostgreSQL prints intervals as "1 year 2 mons 3 days 04:05:06.789".
+// Convert that form to ISO 8601; leave already-ISO or unparseable text alone.
+static bool odbc_interval_to_iso(const exlib::string& text, exlib::string& iso)
+{
+    if (text.empty())
+        return false;
+
+    const char* p = text.c_str();
+    while (*p && qisspace(*p))
+        p++;
+    if (*p == 'P' || *p == 'p')
+        return false;
+
+    int32_t years = 0, months = 0, days = 0, hours = 0, minutes = 0;
+    double seconds = 0;
+    bool hasPart = false;
+
+    while (*p) {
+        while (*p && qisspace(*p))
+            p++;
+        if (!*p)
+            break;
+
+        if (*p == '@') {
+            p++;
+            continue;
+        }
+
+        const char* end = p;
+        while (*end && !qisspace(*end))
+            end++;
+
+        exlib::string token(p, (int32_t)(end - p));
+
+        if (strchr(token.c_str(), ':')) {
+            int32_t h = 0, m = 0;
+            double sec = 0;
+            int32_t timeSign = token.c_str()[0] == '-' ? -1 : 1;
+            int32_t n = sscanf(token.c_str(), "%d:%d:%lf", &h, &m, &sec);
+            if (n < 2)
+                return false;
+
+            hours += timeSign * (h < 0 ? -h : h);
+            minutes += timeSign * (m < 0 ? -m : m);
+            if (n == 3)
+                seconds += timeSign * (sec < 0 ? -sec : sec);
+            hasPart = true;
+            p = end;
+            continue;
+        }
+
+        char* numberEnd = NULL;
+        double value = strtod(p, &numberEnd);
+        if (numberEnd == p)
+            return false;
+
+        p = numberEnd;
+        while (*p && qisspace(*p))
+            p++;
+
+        const char* unitStart = p;
+        while (*p && qisalpha(*p))
+            p++;
+
+        exlib::string unit(unitStart, (int32_t)(p - unitStart));
+        int32_t amount = (int32_t)value;
+        int32_t sign = value < 0 ? -1 : 1;
+        if (amount < 0)
+            amount = -amount;
+
+        if (!qstricmp(unit.c_str(), "year") || !qstricmp(unit.c_str(), "years"))
+            years += sign * amount;
+        else if (!qstricmp(unit.c_str(), "mon") || !qstricmp(unit.c_str(), "mons")
+            || !qstricmp(unit.c_str(), "month") || !qstricmp(unit.c_str(), "months"))
+            months += sign * amount;
+        else if (!qstricmp(unit.c_str(), "day") || !qstricmp(unit.c_str(), "days"))
+            days += sign * amount;
+        else if (!qstricmp(unit.c_str(), "hour") || !qstricmp(unit.c_str(), "hours"))
+            hours += sign * amount;
+        else if (!qstricmp(unit.c_str(), "min") || !qstricmp(unit.c_str(), "mins")
+            || !qstricmp(unit.c_str(), "minute") || !qstricmp(unit.c_str(), "minutes"))
+            minutes += sign * amount;
+        else if (!qstricmp(unit.c_str(), "sec") || !qstricmp(unit.c_str(), "secs")
+            || !qstricmp(unit.c_str(), "second") || !qstricmp(unit.c_str(), "seconds"))
+            seconds += sign * amount;
+        else
+            return false;
+
+        hasPart = true;
+    }
+
+    if (!hasPart || (years == 0 && months == 0 && days == 0 && hours == 0
+            && minutes == 0 && seconds == 0)) {
+        iso = "PT0S";
+        return true;
+    }
+
+    // ISO 8601 has one sign for the whole duration.  Mixed signs cannot be
+    // represented, so keep the backend text in that case.
+    if ((years < 0 || months < 0 || days < 0 || hours < 0 || minutes < 0
+            || seconds < 0)
+        && (years > 0 || months > 0 || days > 0 || hours > 0 || minutes > 0
+            || seconds > 0))
+        return false;
+
+    bool negative = years < 0 || months < 0 || days < 0 || hours < 0
+        || minutes < 0 || seconds < 0;
+
+    if (negative) {
+        years = -years;
+        months = -months;
+        days = -days;
+        hours = -hours;
+        minutes = -minutes;
+        seconds = -seconds;
+    }
+
+    iso.clear();
+    if (negative)
+        iso.append(1, '-');
+    iso.append(1, 'P');
+    if (years)
+        iso.append(std::to_string(years)).append(1, 'Y');
+    if (months)
+        iso.append(std::to_string(months)).append(1, 'M');
+    if (days)
+        iso.append(std::to_string(days)).append(1, 'D');
+
+    if (hours || minutes || seconds) {
+        iso.append(1, 'T');
+        if (hours)
+            iso.append(std::to_string(hours)).append(1, 'H');
+        if (minutes)
+            iso.append(std::to_string(minutes)).append(1, 'M');
+        if (seconds) {
+            char buf[64];
+            int32_t n = snprintf(buf, sizeof(buf), "%.6f", seconds);
+            while (n > 0 && buf[n - 1] == '0')
+                n--;
+            if (n > 0 && buf[n - 1] == '.')
+                n--;
+            iso.append(buf, n).append(1, 'S');
+        }
+    }
+
+    return true;
+}
+
+static bool odbc_text_looks_interval(const exlib::string& text)
+{
+    exlib::string lower = text;
+    exlib::qstrlwr(lower);
+
+    return lower.find(" year") != exlib::string::npos
+        || lower.find(" mon") != exlib::string::npos
+        || lower.find(" day") != exlib::string::npos
+        || lower.find(" hour") != exlib::string::npos
+        || lower.find(" min") != exlib::string::npos
+        || lower.find(" sec") != exlib::string::npos;
+}
+
+static result_t odbc_normalize_text_value(const exlib::string& typeName, Variant& v)
+{
+    if (v.type() != Variant::VT_String)
+        return result_t();
+
+    bool unknown = typeName.empty()
+        || odbc_type_name_is(typeName, "unknown");
+    const exlib::string& text = v.string();
+
+    bool looksJson = false;
+    bool looksArray = false;
+    if (unknown) {
+        const char* p = text.c_str();
+        while (*p && qisspace(*p))
+            p++;
+
+        if (*p == '[')
+            looksJson = true;
+        else if (*p == '{') {
+            bool inQuote = false;
+            bool escaped = false;
+            const char* q = p + 1;
+
+            for (; *q; q++) {
+                if (inQuote) {
+                    if (escaped)
+                        escaped = false;
+                    else if (*q == '\\')
+                        escaped = true;
+                    else if (*q == '"')
+                        inQuote = false;
+                } else if (*q == '"')
+                    inQuote = true;
+                else if (*q == ':') {
+                    looksJson = true;
+                    break;
+                }
+            }
+
+            if (!looksJson)
+                looksArray = true;
+        }
+    }
+
+    if (odbc_is_json_type(typeName) || looksJson) {
+        exlib::string json = text;
+        v.setJSON(json);
+    } else if (odbc_is_uuid_type(typeName)) {
+        exlib::string uuid = text;
+        exlib::qstrlwr(uuid);
+        v = uuid;
+    } else if (odbc_is_array_type(typeName) || looksArray) {
+        exlib::string arrayText = text;
+        const char* p = arrayText.c_str();
+        Variant array;
+
+        result_t hr = odbc_array_value(
+            p, odbc_array_element_type(typeName), array);
+        if (hr.failed())
+            return hr;
+
+        odbc_array_skip_space(p);
+        if (*p)
+            return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kError)
+                .with_code("ERR_INVALID_DATA").with_message("odbc: invalid array literal.");
+
+        v = array;
+    } else if (odbc_type_name_is(typeName, "interval")
+        || (unknown && odbc_text_looks_interval(text))) {
+        exlib::string iso;
+        if (odbc_interval_to_iso(text, iso))
+            v = iso;
+    }
+
+    return result_t();
+}
+
+static result_t odbc_fetch_time(SQLHSTMT stmt, int32_t col, Variant& v)
+{
+    TIMESTAMP_STRUCT value;
+    SQLLEN len = 0;
+    SQLRETURN hr = SQLGetData(stmt, col, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
+    if (hr >= 0) {
+        if (len == SQL_NULL_DATA) {
+            v.setNull();
+            return result_t();
+        }
+
+        char buf[40];
+        int32_t n = snprintf(buf, sizeof(buf), "%02d:%02d:%02d",
+            value.hour, value.minute, value.second);
+        if (value.fraction > 0) {
+            int32_t micro = value.fraction / 1000;
+            int32_t digits = 6;
+            while (digits > 0 && micro % 10 == 0) {
+                micro /= 10;
+                digits--;
+            }
+            if (digits > 0)
+                n += snprintf(buf + n, sizeof(buf) - n, ".%0*d", digits, micro);
+        }
+
+        v = exlib::string(buf, n);
+        return result_t();
+    }
+
+    return odbc_fetch_text(stmt, col, v);
+}
+
+// Fetch one column value by type (shared by execute and Statement cursor)
+static result_t odbc_fetch_timestamp_local(SQLHSTMT stmt, int32_t col, Variant& v)
+{
+    TIMESTAMP_STRUCT value;
+    SQLLEN len = 0;
+    SQLRETURN hr = SQLGetData(stmt, col, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
+    if (hr < 0)
+        return odbc_set_error(SQL_HANDLE_STMT, stmt);
+    if (len == SQL_NULL_DATA)
+        v.setNull();
+    else {
+        date_t d;
+        d.create(value.year, value.month, value.day, value.hour, value.minute,
+            value.second, value.fraction / 1000000);
+        d.toUTC();
+        v = d;
+    }
+    return result_t();
+}
+
+// Fetch one column value by type (shared by execute and Statement cursor)
+static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
+    const exlib::string& typeName, Variant& v)
 {
     SQLRETURN hr;
     SQLLEN len;
@@ -642,6 +1266,7 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
     case SQL_NUMERIC:
     case SQL_DECIMAL:
     case SQL_BIGINT:
+        return odbc_fetch_text(stmt, col, v);
     case SQL_FLOAT:
     case SQL_REAL:
     case SQL_DOUBLE: {
@@ -666,23 +1291,36 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
             v = value != 0;
         break;
     }
-    case SQL_DATETIME:
-    case SQL_TIMESTAMP: {
-        TIMESTAMP_STRUCT value;
-        hr = SQLGetData(stmt, col, SQL_C_TIMESTAMP, &value, sizeof(value), &len);
-        if (hr < 0)
-            return odbc_set_error(SQL_HANDLE_STMT, stmt);
-        if (len == SQL_NULL_DATA)
-            v.setNull();
-        else {
-            date_t d;
-            d.create(value.year, value.month, value.day, value.hour, value.minute,
-                value.second, value.fraction / 1000000);
-            d.toUTC();
-            v = d;
-        }
-        break;
-    }
+    case SQL_TYPE_DATE:
+        return odbc_fetch_text(stmt, col, v);
+    case SQL_TYPE_TIME:
+        if (odbc_type_name_is(typeName, "timetz")
+            || odbc_type_name_contains(typeName, "time with time zone"))
+            return odbc_fetch_text(stmt, col, v);
+        return odbc_fetch_time(stmt, col, v);
+    case SQL_TYPE_TIMESTAMP:
+    case SQL_TIMESTAMP:
+    case SQL_SS_TIMESTAMPOFFSET:
+        if (odbc_is_timezone_timestamp(typeName) || type == SQL_SS_TIMESTAMPOFFSET)
+            return odbc_fetch_timezone_timestamp(stmt, col, v);
+        return odbc_fetch_timestamp_local(stmt, col, v);
+    case SQL_DATE:
+    case SQL_TIME:
+    case SQL_SS_TIME2:
+        if (odbc_type_name_is(typeName, "date"))
+            return odbc_fetch_text(stmt, col, v);
+        if (odbc_type_name_is(typeName, "timetz")
+            || odbc_type_name_contains(typeName, "time with time zone"))
+            return odbc_fetch_text(stmt, col, v);
+        if (odbc_type_name_is(typeName, "time")
+            || type == SQL_TIME || type == SQL_SS_TIME2)
+            return odbc_fetch_time(stmt, col, v);
+        if (odbc_is_timezone_timestamp(typeName))
+            return odbc_fetch_timezone_timestamp(stmt, col, v);
+        if (odbc_type_name_contains(typeName, "datetime")
+            || odbc_type_name_contains(typeName, "timestamp"))
+            return odbc_fetch_timestamp_local(stmt, col, v);
+        return odbc_fetch_text(stmt, col, v);
     case SQL_BINARY:
     case SQL_VARBINARY:
     case SQL_LONGVARBINARY: {
@@ -702,6 +1340,14 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
         break;
     }
     default: {
+        if (odbc_type_name_is(typeName, "date"))
+            return odbc_fetch_text(stmt, col, v);
+        if (odbc_type_name_is(typeName, "time")
+            || odbc_type_name_is(typeName, "timetz"))
+            return odbc_fetch_text(stmt, col, v);
+        if (odbc_is_timezone_timestamp(typeName))
+            return odbc_fetch_timezone_timestamp(stmt, col, v);
+
         // Large text fetched in 4096-character chunks
         exlib::wstring value;
         exlib::wstring chunk;
@@ -733,8 +1379,13 @@ static result_t odbc_fetchValue(SQLHSTMT stmt, int32_t col, SQLLEN type,
             }
         } while (hr == SQL_SUCCESS_WITH_INFO);
 
-        if (len != SQL_NULL_DATA)
+        if (len != SQL_NULL_DATA) {
             v = utf16to8String(value);
+
+            result_t hr = odbc_normalize_text_value(typeName, v);
+            if (hr.failed())
+                return hr;
+        }
         break;
     }
     }
@@ -927,6 +1578,7 @@ public:
 
         m_columns = columns;
         m_types.resize(m_columns);
+        m_typeNames.resize(m_columns);
         m_names.resize(m_columns);
 
         for (int32_t i = 0; i < m_columns; i++) {
@@ -953,18 +1605,11 @@ public:
                 return hr;
             }
 
-            if (m_types[i] == SQL_VARCHAR) {
-                SQLSMALLINT blen;
-                SQLWCHAR bbuf[SQL_MAX_COLUMN_NAME_LEN];
-                sqlhr = SQLColAttributeW(m_stmt, i + 1, SQL_DESC_TYPE_NAME,
-                    bbuf, SQL_MAX_COLUMN_NAME_LEN * sizeof(SQLWCHAR), &blen, NULL);
-                if (sqlhr >= 0) {
-                    exlib::string typeName = utf16to8String(
-                        (const char16_t*)bbuf, blen / sizeof(SQLWCHAR));
-                    if (typeName == "boolean" || typeName == "bool")
-                        m_types[i] = SQL_BIT;
-                }
-            }
+            odbc_get_type_name(m_stmt, i + 1, m_typeNames[i]);
+            if (m_types[i] == SQL_VARCHAR
+                && (odbc_type_name_is(m_typeNames[i], "boolean")
+                    || odbc_type_name_is(m_typeNames[i], "bool")))
+                m_types[i] = SQL_BIT;
         }
 
         hasResult = (m_columns > 0);
@@ -988,7 +1633,7 @@ public:
 
         for (int32_t i = 0; i < m_columns; i++) {
             Variant v;
-            result_t hr2 = odbc_fetchValue(m_stmt, i + 1, m_types[i], v);
+            result_t hr2 = odbc_fetchValue(m_stmt, i + 1, m_types[i], m_typeNames[i], v);
             if (hr2.failed())
                 return hr2;
             row->add(m_names[i], v);
@@ -1023,6 +1668,7 @@ public:
         }
         m_columns = 0;
         m_types.clear();
+        m_typeNames.clear();
         m_names.clear();
         if (m_activeStmt)
             *m_activeStmt = 0;
@@ -1042,6 +1688,7 @@ private:
     SQLHSTMT m_stmt;
     SQLSMALLINT m_columns;
     std::vector<SQLLEN> m_types;
+    std::vector<exlib::string> m_typeNames;
     std::vector<exlib::string> m_names;
 };
 

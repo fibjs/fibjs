@@ -111,20 +111,97 @@ result_t SQLite::get_type(exlib::string& retVal)
 }
 
 // Column value conversion (shared by execute and the Statement cursor)
+static bool sqlite_decltype_is(const char* type, const char* name)
+{
+    if (!type)
+        return false;
+
+    int32_t len = (int32_t)qstrlen(name);
+    if (qstricmp(type, name, len))
+        return false;
+
+    char ch = type[len];
+    return ch == 0 || ch == '(' || ch == ' ' || ch == '[';
+}
+
+static bool sqlite_decltype_is_wide_number(const char* type)
+{
+    return sqlite_decltype_is(type, "bigint")
+        || sqlite_decltype_is(type, "decimal")
+        || sqlite_decltype_is(type, "numeric")
+        || sqlite_decltype_is(type, "money");
+}
+
+static bool sqlite_decltype_is_blob(const char* type)
+{
+    return sqlite_decltype_is(type, "blob")
+        || sqlite_decltype_is(type, "tinyblob")
+        || sqlite_decltype_is(type, "mediumblob")
+        || sqlite_decltype_is(type, "longblob")
+        || sqlite_decltype_is(type, "binary")
+        || sqlite_decltype_is(type, "varbinary");
+}
+
+static bool sqlite_decltype_is_date(const char* type)
+{
+    return sqlite_decltype_is(type, "date");
+}
+
+static bool sqlite_decltype_is_time(const char* type)
+{
+    return sqlite_decltype_is(type, "time");
+}
+
+static bool sqlite_decltype_is_timestamp(const char* type)
+{
+    return sqlite_decltype_is(type, "datetime")
+        || sqlite_decltype_is(type, "timestamp");
+}
+
+static bool sqlite_decltype_is_json(const char* type)
+{
+    return sqlite_decltype_is(type, "json")
+        || sqlite_decltype_is(type, "jsonb");
+}
+
+static bool sqlite_decltype_is_uuid(const char* type)
+{
+    return sqlite_decltype_is(type, "uuid")
+        || sqlite_decltype_is(type, "uniqueidentifier");
+}
+
 void SQLite::columnValue(sqlite3_stmt* stmt, int32_t i, Variant& v)
 {
+    const char* type = sqlite3_column_decltype(stmt, i);
+
     switch (sqlite3_column_type(stmt, i)) {
     case SQLITE_NULL:
         v.setNull();
         break;
 
     case SQLITE_INTEGER:
+        if (sqlite_decltype_is(type, "boolean")) {
+            v = sqlite3_column_int64(stmt, i) != 0;
+            break;
+        }
+        if (sqlite_decltype_is_wide_number(type)) {
+            const char* data = (const char*)sqlite3_column_text(stmt, i);
+            int32_t size = sqlite3_column_bytes(stmt, i);
+            v = exlib::string(data, size);
+            break;
+        }
         v = (double)sqlite3_column_int64(stmt, i);
         break;
 
-    case SQLITE_FLOAT:
-        v = sqlite3_column_double(stmt, i);
+    case SQLITE_FLOAT: {
+        if (sqlite_decltype_is_wide_number(type)) {
+            const char* data = (const char*)sqlite3_column_text(stmt, i);
+            int32_t size = sqlite3_column_bytes(stmt, i);
+            v = exlib::string(data, size);
+        } else
+            v = sqlite3_column_double(stmt, i);
         break;
+    }
 
     case SQLITE_BLOB: {
         const char* data = (const char*)sqlite3_column_blob(stmt, i);
@@ -135,32 +212,36 @@ void SQLite::columnValue(sqlite3_stmt* stmt, int32_t i, Variant& v)
     }
 
     default:
-        const char* type = sqlite3_column_decltype(stmt, i);
-        if (type
-            && (!qstricmp(type, "blob", 4)
-                || !qstricmp(type, "tinyblob", 8)
-                || !qstricmp(type, "mediumblob", 10)
-                || !qstricmp(type, "longblob", 8)
-                || !qstricmp(type, "binary", 6)
-                || !qstricmp(type, "varbinary", 9))) {
+        if (sqlite_decltype_is_blob(type)) {
             const char* data = (const char*)sqlite3_column_blob(stmt, i);
             int32_t size = sqlite3_column_bytes(stmt, i);
 
             v = new Buffer(data, size);
-        } else if (type
-            && (!qstricmp(type, "datetime")
-                || !qstricmp(type, "timestamp")
-                || !qstricmp(type, "date")
-                || !qstricmp(type, "time"))) {
-            const char* data = (const char*)sqlite3_column_text(stmt, i);
-            int32_t size = sqlite3_column_bytes(stmt, i);
-
-            v.parseDate(data, size);
-        } else {
+        } else if (sqlite_decltype_is_date(type)
+            || sqlite_decltype_is_time(type)) {
             const char* data = (const char*)sqlite3_column_text(stmt, i);
             int32_t size = sqlite3_column_bytes(stmt, i);
 
             v = exlib::string(data, size);
+        } else if (sqlite_decltype_is_timestamp(type)) {
+            const char* data = (const char*)sqlite3_column_text(stmt, i);
+            int32_t size = sqlite3_column_bytes(stmt, i);
+
+            v.parseDate(data, size);
+        } else if (sqlite_decltype_is(type, "boolean")) {
+            v = sqlite3_column_int64(stmt, i) != 0;
+        } else {
+            const char* data = (const char*)sqlite3_column_text(stmt, i);
+            int32_t size = sqlite3_column_bytes(stmt, i);
+            exlib::string text(data, size);
+
+            if (sqlite_decltype_is_json(type))
+                v.setJSON(text);
+            else {
+                if (sqlite_decltype_is_uuid(type))
+                    exlib::qstrlwr(text);
+                v = text;
+            }
         }
         break;
     }

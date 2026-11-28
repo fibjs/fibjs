@@ -17,6 +17,11 @@
 
 namespace fibjs {
 
+#ifndef MFTYPE_JSON
+// MySQL wire type for JSON (not present in older vendored enum).
+#define MFTYPE_JSON 0xf5
+#endif
+
 // The handle has been released: one helper so the call sites cannot drift
 // apart, and so the code string is stated once.
 static result_t db_closed()
@@ -91,24 +96,50 @@ void mysql::columnValue(const UMTypeInfo* ti, const UINT8* value,
             v.setNull();
             break;
 
-        case MFTYPE_BIT:
-            v = new Buffer(value, cbValue);
+        case MFTYPE_BIT: {
+            exlib::string bits;
+            bits.resize(cbValue * 8);
+            for (size_t i = 0; i < cbValue; i++) {
+                for (int32_t b = 0; b < 8; b++)
+                    bits[i * 8 + b] = (value[i] & (0x80 >> b)) ? '1' : '0';
+            }
+            v = bits;
             break;
+        }
 
         case MFTYPE_TINY:
+            if (ti->length == 1)
+                v = ((const char*)value)[0] != '0';
+            else
+                v.parseNumber((const char*)value, (int32_t)cbValue);
+            break;
+
         case MFTYPE_SHORT:
         case MFTYPE_LONG:
         case MFTYPE_INT24:
-        case MFTYPE_LONGLONG:
         case MFTYPE_FLOAT:
         case MFTYPE_DOUBLE:
-        case MFTYPE_DECIMAL:
-        case MFTYPE_NEWDECIMAL:
         case MFTYPE_YEAR:
             v.parseNumber((const char*)value, (int32_t)cbValue);
             break;
 
+        case MFTYPE_JSON: {
+            exlib::string text((const char*)value, cbValue);
+            v.setJSON(text);
+            break;
+        }
+
+        case MFTYPE_LONGLONG:
+        case MFTYPE_DECIMAL:
+        case MFTYPE_NEWDECIMAL:
+            v = exlib::string((const char*)value, cbValue);
+            break;
+
         case MFTYPE_DATE:
+        case MFTYPE_NEWDATE:
+            v = exlib::string((const char*)value, cbValue);
+            break;
+
         case MFTYPE_DATETIME:
         case MFTYPE_TIMESTAMP:
             v.parseDate((const char*)value, (int32_t)cbValue);

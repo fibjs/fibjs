@@ -7478,6 +7478,32 @@ declare class Class_DOMTokenList extends Class_object {
  *  - **Results**: queries return an array of row objects keyed by column name;
  *    INSERT/UPDATE/DELETE results carry \`affected\` and \`insertId\` (mssql has no
  *    \`insertId\`); a string with several statements returns an array of result sets.
+ *  - **Column value types**: all SQL engines follow the same logical type contract, so a
+ *    value has the same JavaScript type regardless of the backend:
+ *
+ *    | SQL type | JavaScript value |
+ *    | --- | --- |
+ *    | \`BOOLEAN\` / \`BOOL\` / MySQL \`TINYINT(1)\` / MSSQL \`BIT\` | boolean |
+ *    | \`TINYINT\` / \`SMALLINT\` / \`INT\` / \`MEDIUMINT\` | number |
+ *    | \`BIGINT\` / \`DECIMAL\` / \`NUMERIC\` / \`MONEY\` (including unsigned variants) | string, exact digits |
+ *    | \`FLOAT\` / \`REAL\` / \`DOUBLE\` | number |
+ *    | \`BIT(n)\` / \`VARBIT(n)\` | bit string (\`'1010'\`) |
+ *    | \`BINARY\` / \`VARBINARY\` / \`BLOB\` / \`BYTEA\` / \`IMAGE\` / geometry | Buffer |
+ *    | \`CHAR\` / \`VARCHAR\` / \`TEXT\` / \`CLOB\` / \`ENUM\` / \`SET\` | string |
+ *    | \`DATE\` | string, \`YYYY-MM-DD\` |
+ *    | \`TIME\` / \`TIMETZ\` | string, \`HH:mm:ss[.ffffff]\` |
+ *    | \`DATETIME\` / \`TIMESTAMP\` without time zone | Date, local wall clock |
+ *    | \`TIMESTAMPTZ\` / \`TIMESTAMP WITH TIME ZONE\` / \`DATETIMEOFFSET\` | Date, absolute instant |
+ *    | \`INTERVAL\` | string, ISO 8601 duration when the text can be normalized |
+ *    | \`JSON\` / \`JSONB\` | parsed object/array value |
+ *    | \`UUID\` / \`UNIQUEIDENTIFIER\` | lowercase string |
+ *    | PostgreSQL \`ARRAY\` | array, elements follow the same rules |
+ *    | \`XML\` / \`INET\` / \`CIDR\` / \`MACADDR\` | string |
+ *    | \`NULL\` | null |
+ *
+ *    Values that cannot be represented without losing information stay strings: \`BIGINT\`
+ *    and \`DECIMAL\` are not rounded through \`number\`. JSON text that cannot be parsed is
+ *    reported as an error when read, not silently converted. There is no legacy mode.
  *  - **Transactions**: without an argument, \`begin\`/\`commit\`/\`rollback\` drive the
  *    connection transaction. With a \`point\` name they use savepoints: begin creates
  *    \`SAVEPOINT point\`, commit runs \`RELEASE SAVEPOINT point\` and rollback runs
@@ -91442,6 +91468,12 @@ declare module 'crypto_constants' {
  *    INSERT/UPDATE/DELETE result is an array-like whose \`affected\` property holds the row
  *    count and \`insertId\` the generated key (mssql has no \`insertId\`). A string with
  *    several statements returns an array of result sets.
+ *  - **Column value types**: engines share one logical type contract. \`DATE\` and \`TIME\`
+ *    are strings, \`DATETIME\`/\`TIMESTAMP\` are Date values, \`TIMESTAMPTZ\`/\`DATETIMEOFFSET\`
+ *    are absolute Date values, \`BIGINT\`/\`DECIMAL\`/\`NUMERIC\` are exact strings, booleans
+ *    are boolean, \`BIT(n)\` is a bit string, binary columns are Buffer, \`JSON\`/\`JSONB\` are
+ *    parsed objects, \`UUID\` is a lowercase string and PostgreSQL arrays are arrays. See
+ *    the DbConnection class for the full table.
  *  - **Transactions**: \`begin\`/\`commit\`/\`rollback\` without an argument start, commit and
  *    roll back the current transaction; with a \`point\` name they work on a savepoint.
  *    \`trans(func)\` runs func inside a transaction, commits when it returns a value other

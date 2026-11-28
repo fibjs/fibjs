@@ -31,6 +31,12 @@
    INSERT/UPDATE/DELETE result is an array-like whose `affected` property holds the row
    count and `insertId` the generated key (mssql has no `insertId`). A string with
    several statements returns an array of result sets.
+ - **Column value types**: engines share one logical type contract. `DATE` and `TIME`
+   are strings, `DATETIME`/`TIMESTAMP` are Date values, `TIMESTAMPTZ`/`DATETIMEOFFSET`
+   are absolute Date values, `BIGINT`/`DECIMAL`/`NUMERIC` are exact strings, booleans
+   are boolean, `BIT(n)` is a bit string, binary columns are Buffer, `JSON`/`JSONB` are
+   parsed objects, `UUID` is a lowercase string and PostgreSQL arrays are arrays. See
+   the DbConnection class for the full table.
  - **Transactions**: `begin`/`commit`/`rollback` without an argument start, commit and
    roll back the current transaction; with a `point` name they work on a savepoint.
    `trans(func)` runs func inside a transaction, commits when it returns a value other

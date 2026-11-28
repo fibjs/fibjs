@@ -1196,21 +1196,21 @@ describe("db", () => {
                     assert.isTrue(Buffer.isBuffer(row.longblob_col));
                     assert.equal(row.longblob_col.toString(), 'longblob data');
 
-                    // Test JSON type - should return as string
-                    assert.equal(typeof row.json_col, 'string');
-                    assert.equal(row.json_col, '{"key": "value"}');
+                    // Test JSON type - should return as object
+                    assert.equal(typeof row.json_col, 'object');
+                    assert.deepEqual(row.json_col, { key: 'value' });
 
-                    // Test bit type - should return as Buffer
-                    assert.equal(typeof row.bit_col, 'object');
-                    assert.isTrue(Buffer.isBuffer(row.bit_col));
+                    // Test bit type - should return a bit string
+                    assert.equal(typeof row.bit_col, 'string');
+                    assert.equal(row.bit_col, '10101010');
 
-                    // Test boolean type - should return as number (0 or 1)
-                    assert.equal(typeof row.boolean_col, 'number');
-                    assert.equal(row.boolean_col, 1);
+                    // Test boolean type - BOOLEAN/TINYINT(1) returns boolean
+                    assert.equal(typeof row.boolean_col, 'boolean');
+                    assert.equal(row.boolean_col, true);
 
-                    // Test date/time types - should return as Date objects
-                    assert.equal(typeof row.date_col, 'object');
-                    assert.isTrue(row.date_col instanceof Date);
+                    // Test date/time types - DATE/TIME are strings, DATETIME/TIMESTAMP are Dates
+                    assert.equal(typeof row.date_col, 'string');
+                    assert.equal(row.date_col, '2023-01-01');
                     assert.equal(typeof row.datetime_col, 'object');
                     assert.isTrue(row.datetime_col instanceof Date);
                     assert.equal(typeof row.timestamp_col, 'object');
@@ -1223,9 +1223,9 @@ describe("db", () => {
                     assert.equal(typeof row.year_col, 'number');
                     assert.equal(row.year_col, 2023);
 
-                    // Test numeric types - should return as number
-                    assert.equal(typeof row.decimal_col, 'number');
-                    assert.equal(row.decimal_col, 123.45);
+                    // Test numeric types - DECIMAL/BIGINT are strings
+                    assert.equal(typeof row.decimal_col, 'string');
+                    assert.equal(row.decimal_col, '123.45');
                     assert.equal(typeof row.float_col, 'number');
                     assert.ok(Math.abs(row.float_col - 3.14) < 0.01);
                     assert.equal(typeof row.double_col, 'number');
@@ -1236,8 +1236,8 @@ describe("db", () => {
                     assert.equal(row.smallint_col, 32767);
                     assert.equal(typeof row.mediumint_col, 'number');
                     assert.equal(row.mediumint_col, 8388607);
-                    assert.equal(typeof row.bigint_col, 'number');
-                    assert.equal(row.bigint_col, 9223372036854775807);
+                    assert.equal(typeof row.bigint_col, 'string');
+                    assert.equal(row.bigint_col, '9223372036854775807');
 
                     // Test integer type - should return as number
                     assert.equal(typeof row.id, 'number');
@@ -1432,19 +1432,19 @@ describe("db", () => {
                     assert.isTrue(Buffer.isBuffer(row.bytea_col));
                     assert.equal(row.bytea_col.toString(), 'bytea data');
 
-                    // Test JSON types - should return as string
-                    assert.equal(typeof row.json_col, 'string');
-                    assert.equal(row.json_col, '{"key": "value"}');
-                    assert.equal(typeof row.jsonb_col, 'string');
-                    assert.equal(row.jsonb_col, '{"key": "jsonb_value"}');
+                    // Test JSON types - should return as object
+                    assert.equal(typeof row.json_col, 'object');
+                    assert.deepEqual(row.json_col, { key: 'value' });
+                    assert.equal(typeof row.jsonb_col, 'object');
+                    assert.deepEqual(row.jsonb_col, { key: 'jsonb_value' });
 
                     // Test boolean type - should return as boolean
                     assert.equal(typeof row.boolean_col, 'boolean');
                     assert.equal(row.boolean_col, true);
 
-                    // Test date/time types - should return as Date objects or strings
-                    assert.equal(typeof row.date_col, 'object');
-                    assert.isTrue(row.date_col instanceof Date);
+                    // Test date/time types - DATE is string, timestamps are Date
+                    assert.equal(typeof row.date_col, 'string');
+                    assert.equal(row.date_col, '2023-01-01');
                     assert.equal(typeof row.timestamp_col, 'object');
                     assert.isTrue(row.timestamp_col instanceof Date);
                     assert.equal(typeof row.timestamptz_col, 'object');
@@ -1457,13 +1457,13 @@ describe("db", () => {
                         assert.equal(row.time_col, '12:30:45');
                     }
                     assert.equal(typeof row.interval_col, 'string');
-                    assert.equal(row.interval_col, '1 year 2 mons 3 days');
+                    assert.equal(row.interval_col, 'P1Y2M3D');
 
-                    // Test numeric types - should return as number
-                    assert.equal(typeof row.numeric_col, 'number');
-                    assert.equal(row.numeric_col, 123.45);
-                    assert.equal(typeof row.decimal_col, 'number');
-                    assert.equal(row.decimal_col, 678.90);
+                    // Test numeric types - NUMERIC/DECIMAL/BIGINT are strings
+                    assert.equal(typeof row.numeric_col, 'string');
+                    assert.equal(row.numeric_col, '123.45');
+                    assert.equal(typeof row.decimal_col, 'string');
+                    assert.equal(row.decimal_col, '678.90');
                     assert.equal(typeof row.real_col, 'number');
                     assert.ok(Math.abs(row.real_col - 3.14) < 0.01);
                     assert.equal(typeof row.double_col, 'number');
@@ -1472,8 +1472,8 @@ describe("db", () => {
                     assert.equal(row.smallint_col, 32767);
                     assert.equal(typeof row.integer_col, 'number');
                     assert.equal(row.integer_col, 123456);
-                    assert.equal(typeof row.bigint_col, 'number');
-                    assert.equal(row.bigint_col, 123456789012345);
+                    assert.equal(typeof row.bigint_col, 'string');
+                    assert.equal(row.bigint_col, '123456789012345');
 
                     // Test serial type - should return as number
                     assert.equal(typeof row.id, 'number');
@@ -1481,7 +1481,7 @@ describe("db", () => {
 
                     // Test special PostgreSQL types
                     assert.equal(typeof row.uuid_col, 'string');
-                    assert.equal(row.uuid_col.toLowerCase(), '550e8400-e29b-41d4-a716-446655440000');
+                    assert.equal(row.uuid_col, '550e8400-e29b-41d4-a716-446655440000');
                     assert.equal(typeof row.inet_col, 'string');
                     assert.equal(row.inet_col, '192.168.1.1');
                     assert.equal(typeof row.macaddr_col, 'string');
@@ -1495,6 +1495,37 @@ describe("db", () => {
 
                     // Clean up
                     conn.execute('DROP TABLE test_psql_types');
+                });
+
+                it("PostgreSQL arrays are returned as arrays", () => {
+                    try {
+                        conn.execute('DROP TABLE IF EXISTS test_psql_arrays');
+                    } catch (e) {
+                        // ignore
+                    }
+
+                    conn.execute(`
+                        CREATE TABLE test_psql_arrays (
+                            int_col INTEGER[],
+                            text_col TEXT[],
+                            numeric_col NUMERIC(10,2)[]
+                        )
+                    `);
+                    conn.execute(`
+                        INSERT INTO test_psql_arrays VALUES (
+                            '{1,2,NULL}',
+                            ARRAY['a,b', 'c"d', NULL],
+                            '{1.20,2.30}'
+                        )
+                    `);
+
+                    var row = conn.execute('SELECT * FROM test_psql_arrays')[0];
+
+                    assert.deepEqual(row.int_col, [1, 2, null]);
+                    assert.deepEqual(row.text_col, ['a,b', 'c"d', null]);
+                    assert.deepEqual(row.numeric_col, ['1.20', '2.30']);
+
+                    conn.execute('DROP TABLE test_psql_arrays');
                 });
 
                 // some special types would not be parsed correctly with old implementation,
@@ -1588,21 +1619,21 @@ describe("db", () => {
                     assert.equal(typeof row.boolean_col, 'boolean');
                     assert.equal(row.boolean_col, true);
 
-                    // Test date/time types
-                    assert.equal(typeof row.date_col, 'object');
-                    assert.isTrue(row.date_col instanceof Date);
-                    assert.equal(typeof row.time_col, 'object');
-                    assert.isTrue(row.time_col instanceof Date);
+                    // Test date/time types - DATE/TIME are strings, DATETIME/TIMESTAMP are Date
+                    assert.equal(typeof row.date_col, 'string');
+                    assert.equal(row.date_col, '2023-01-01');
+                    assert.equal(typeof row.time_col, 'string');
+                    assert.equal(row.time_col, '12:30:45');
                     assert.equal(typeof row.datetime_col, 'object');
                     assert.isTrue(row.datetime_col instanceof Date);
                     assert.equal(typeof row.timestamp_col, 'object');
                     assert.isTrue(row.timestamp_col instanceof Date);
 
-                    // Test numeric types
-                    assert.equal(typeof row.numeric_col, 'number');
-                    assert.equal(row.numeric_col, 123.45);
-                    assert.equal(typeof row.decimal_col, 'number');
-                    assert.equal(row.decimal_col, 678.90);
+                    // Test numeric types - NUMERIC/DECIMAL/BIGINT are strings
+                    assert.equal(typeof row.numeric_col, 'string');
+                    assert.equal(row.numeric_col, '123.45');
+                    assert.equal(typeof row.decimal_col, 'string');
+                    assert.equal(row.decimal_col, '678.90');
                     assert.equal(typeof row.real_col, 'number');
                     assert.ok(Math.abs(row.real_col - 3.14) < 0.01);
                     assert.equal(typeof row.double_col, 'number');
@@ -1611,8 +1642,8 @@ describe("db", () => {
                     assert.equal(row.smallint_col, 32767);
                     assert.equal(typeof row.integer_col, 'number');
                     assert.equal(row.integer_col, 123456);
-                    assert.equal(typeof row.bigint_col, 'number');
-                    assert.equal(row.bigint_col, 123456789012345);
+                    assert.equal(typeof row.bigint_col, 'string');
+                    assert.equal(row.bigint_col, '123456789012345');
                     assert.equal(typeof row.tinyint_col, 'number');
                     assert.equal(row.tinyint_col, 127);
 
@@ -1801,50 +1832,45 @@ describe("db", () => {
                     assert.equal(typeof row2.real_col, 'number');
                     assert.ok(Math.abs(row2.real_col - 2.718) < 0.001);
 
-                    // Test NUMERIC affinity - should return as number
-                    assert.equal(typeof row1.numeric_col, 'number');
-                    assert.equal(row1.numeric_col, 123.45);
-                    assert.equal(typeof row1.decimal_col, 'number');
-                    assert.equal(row1.decimal_col, 678.90);
-                    assert.equal(typeof row2.numeric_col, 'number');
-                    assert.equal(row2.numeric_col, 999.99);
-                    assert.equal(typeof row2.decimal_col, 'number');
-                    assert.equal(row2.decimal_col, 456.78);
+                    // Test NUMERIC affinity - DECIMAL/NUMERIC are strings
+                    assert.equal(typeof row1.numeric_col, 'string');
+                    assert.equal(row1.numeric_col, '123.45');
+                    assert.equal(typeof row1.decimal_col, 'string');
+                    assert.equal(row1.decimal_col, '678.9');
+                    assert.equal(typeof row2.numeric_col, 'string');
+                    assert.equal(row2.numeric_col, '999.99');
+                    assert.equal(typeof row2.decimal_col, 'string');
+                    assert.equal(row2.decimal_col, '456.78');
 
-                    // Test BOOLEAN - SQLite stores as INTEGER (0 or 1)
-                    assert.equal(typeof row1.boolean_col, 'number');
-                    assert.equal(row1.boolean_col, 1);  // true -> 1
-                    assert.equal(typeof row2.boolean_col, 'number');
-                    assert.equal(row2.boolean_col, 0);  // false -> 0
+                    // Test BOOLEAN - SQLite stores as INTEGER but maps to boolean
+                    assert.equal(typeof row1.boolean_col, 'boolean');
+                    assert.equal(row1.boolean_col, true);
+                    assert.equal(typeof row2.boolean_col, 'boolean');
+                    assert.equal(row2.boolean_col, false);
 
-                    // Test date/time types - SQLite parses declared date/time types as Date objects
-                    // String dates in DATE/DATETIME/TIMESTAMP/TIME columns should return as Date objects
-                    assert.equal(typeof row1.date_col, 'object');
-                    assert.isTrue(row1.date_col instanceof Date);
+                    // Test DATE/TIME as strings, DATETIME/TIMESTAMP as Date
+                    assert.equal(typeof row1.date_col, 'string');
+                    assert.equal(row1.date_col, '2023-01-01');
+                    assert.equal(typeof row1.time_col, 'string');
+                    assert.equal(row1.time_col, '12:30:45');
                     assert.equal(typeof row1.datetime_col, 'object');
                     assert.isTrue(row1.datetime_col instanceof Date);
                     assert.equal(typeof row1.timestamp_col, 'object');
                     assert.isTrue(row1.timestamp_col instanceof Date);
 
-                    // TIME columns should also be parsed as Date objects
-                    assert.equal(typeof row1.time_col, 'object');
-                    assert.isTrue(row1.time_col instanceof Date);
-
-                    // Date objects should be converted to Date objects as well
-                    assert.equal(typeof row2.date_col, 'object');
-                    assert.isTrue(row2.date_col instanceof Date);
-                    assert.equal(typeof row2.time_col, 'object');
-                    assert.isTrue(row2.time_col instanceof Date);
+                    // Date objects should be converted to strings for DATE/TIME
+                    assert.equal(typeof row2.date_col, 'string');
+                    assert.equal(typeof row2.time_col, 'string');
                     assert.equal(typeof row2.datetime_col, 'object');
                     assert.isTrue(row2.datetime_col instanceof Date);
                     assert.equal(typeof row2.timestamp_col, 'object');
                     assert.isTrue(row2.timestamp_col instanceof Date);
 
-                    // Test JSON - stored as TEXT in SQLite
-                    assert.equal(typeof row1.json_col, 'string');
-                    assert.equal(row1.json_col, '{"key": "value"}');
-                    assert.equal(typeof row2.json_col, 'string');
-                    assert.equal(row2.json_col, '{"test":"data","number":42}');
+                    // Test JSON - declaration type JSON is returned as object
+                    assert.equal(typeof row1.json_col, 'object');
+                    assert.deepEqual(row1.json_col, { key: 'value' });
+                    assert.equal(typeof row2.json_col, 'object');
+                    assert.deepEqual(row2.json_col, { test: 'data', number: 42 });
 
                     // Test PRIMARY KEY AUTOINCREMENT
                     assert.equal(typeof row1.id, 'number');

@@ -26,6 +26,32 @@
  *  - **Results**: queries return an array of row objects keyed by column name;
  *    INSERT/UPDATE/DELETE results carry `affected` and `insertId` (mssql has no
  *    `insertId`); a string with several statements returns an array of result sets.
+ *  - **Column value types**: all SQL engines follow the same logical type contract, so a
+ *    value has the same JavaScript type regardless of the backend:
+ *
+ *    | SQL type | JavaScript value |
+ *    | --- | --- |
+ *    | `BOOLEAN` / `BOOL` / MySQL `TINYINT(1)` / MSSQL `BIT` | boolean |
+ *    | `TINYINT` / `SMALLINT` / `INT` / `MEDIUMINT` | number |
+ *    | `BIGINT` / `DECIMAL` / `NUMERIC` / `MONEY` (including unsigned variants) | string, exact digits |
+ *    | `FLOAT` / `REAL` / `DOUBLE` | number |
+ *    | `BIT(n)` / `VARBIT(n)` | bit string (`'1010'`) |
+ *    | `BINARY` / `VARBINARY` / `BLOB` / `BYTEA` / `IMAGE` / geometry | Buffer |
+ *    | `CHAR` / `VARCHAR` / `TEXT` / `CLOB` / `ENUM` / `SET` | string |
+ *    | `DATE` | string, `YYYY-MM-DD` |
+ *    | `TIME` / `TIMETZ` | string, `HH:mm:ss[.ffffff]` |
+ *    | `DATETIME` / `TIMESTAMP` without time zone | Date, local wall clock |
+ *    | `TIMESTAMPTZ` / `TIMESTAMP WITH TIME ZONE` / `DATETIMEOFFSET` | Date, absolute instant |
+ *    | `INTERVAL` | string, ISO 8601 duration when the text can be normalized |
+ *    | `JSON` / `JSONB` | parsed object/array value |
+ *    | `UUID` / `UNIQUEIDENTIFIER` | lowercase string |
+ *    | PostgreSQL `ARRAY` | array, elements follow the same rules |
+ *    | `XML` / `INET` / `CIDR` / `MACADDR` | string |
+ *    | `NULL` | null |
+ *
+ *    Values that cannot be represented without losing information stay strings: `BIGINT`
+ *    and `DECIMAL` are not rounded through `number`. JSON text that cannot be parsed is
+ *    reported as an error when read, not silently converted. There is no legacy mode.
  *  - **Transactions**: without an argument, `begin`/`commit`/`rollback` drive the
  *    connection transaction. With a `point` name they use savepoints: begin creates
  *    `SAVEPOINT point`, commit runs `RELEASE SAVEPOINT point` and rollback runs
