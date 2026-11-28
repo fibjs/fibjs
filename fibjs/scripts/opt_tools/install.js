@@ -1325,12 +1325,21 @@ function run_module_scripts(pkg_path, pkg_info, is_root, skip) {
 
     var scripts = pkgjson.scripts || {};
 
-    // build lifecycle event list
+    // build lifecycle event list. npm runs `preinstall` for every dependency it
+    // installs, and a link (a workspace member or a `file:` package) is built like
+    // a project of its own: `prepare` runs for it as well, before install and
+    // postinstall (arborist/rebuild.js queues preinstall/install/postinstall for
+    // dependency nodes and preinstall/prepare/install/postinstall for link nodes)
+    var is_link = pkg_info && (pkg_info.workspace_package === true ||
+        pkg_info.local_package === true || pkg_info.link === true);
+
     var events;
     if (is_root)
         events = ['preinstall', 'install', 'postinstall', 'prepublish', 'preprepare', 'prepare', 'postprepare'];
+    else if (is_link)
+        events = ['preinstall', 'prepare', 'install', 'postinstall'];
     else
-        events = ['install', 'postinstall'];
+        events = ['preinstall', 'install', 'postinstall'];
 
     if (skip)
         events = events.filter(e => skip.indexOf(e) < 0);
@@ -1436,8 +1445,10 @@ function run_lifecycle_scripts(level_info, base_path, is_root) {
         run_lifecycle_scripts(child, child_path, false);
     }
 
-    // process current module
-    if (level_info.new_module)
+    // process current module. A node `--update` resolved back to the version that
+    // was already unpacked is not new work: its scripts have run before, and what
+    // they produced (a prebuilt addon, a downloaded toolchain) is still on the disk
+    if (level_info.new_module && !level_info.reuse_disk)
         run_module_scripts(base_path, level_info, is_root, is_root ? ['preinstall'] : null);
 }
 
@@ -2186,6 +2197,12 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
             let v = _deps[dname];
             let child_level_info = level_info.node_modules[dname];
 
+            // the copy at this placement before `--update` decides about it: a refresh
+            // that resolves back to the same version keeps this copy (see
+            // `same_unpacked_copy`), and the node is then a disk copy as far as the
+            // rest of the run is concerned
+            const on_disk = child_level_info;
+
             // For workspace packages, skip external fetch but still process their dependencies
             if (child_level_info && child_level_info.workspace_package) {
                 // Ensure version matches for workspace packages
@@ -2209,9 +2226,14 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                 }
             }
 
-            // `--update`: ask the registry again instead of keeping what is
-            // already there, and pass that down to the subtree (npm's
-            // `update <pkg>` refreshes what that package needs too).
+            // `--update`: ask the registry again for the edge the flag names,
+            // instead of keeping the version that is already there. Only that edge
+            // is refreshed. The level itself used to be marked refreshed, which made
+            // every *sibling* of the named package resolve again the moment the first
+            // fiber set the flag: `--update one` fetched the whole level and re-ran
+            // the install scripts of packages that did not change. npm refreshes the
+            // named node alone; what it needs is re-resolved only where the copy on
+            // disk no longer satisfies the range, which is the ordinary walk below
             //
             // A copy an *earlier level of this run* resolved is not "what is
             // already there": it is the newest the range allowed, and reusing it
@@ -2221,7 +2243,7 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
             // the walk went down until the stack was gone, so `--update` could not
             // install a real project at all. A copy that was on disk *before* this
             // run is still refreshed: that is what the flag is for
-            const refresh = should_update(dname, level_info);
+            const refresh = should_update(dname);
 
             let reuse_fresh = false;
 
@@ -2235,7 +2257,6 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
             }
 
             if (refresh) {
-                level_info.updated = true;
                 child_level_info = undefined;
             } else if (child_level_info === undefined && !find_version(dname, v, level_info)) {
                 // nothing on disk to start from: the lockfile is the tree npm
@@ -2388,8 +2409,50 @@ function walkthrough_deps(level_info, need_dev_deps = false, base_dir = process.
                 // which is not the answer a refresh is looking for — unless that
                 // copy is one this run resolved (`reuse_fresh`), which is the
                 // newest the range allowed and must not be asked for again
-                if ((refresh && !reuse_fresh) || !find_version(dname, v, level_info))
+                if ((refresh && !reuse_fresh) || !find_version(dname, v, level_info)) {
                     child_level_info = level_info.node_modules[dname] = fetch_leveled_module_info(dname, v, level_info, base_dir);
+
+                    // the registry answered with the version that is already unpacked
+                    // here: the bytes do not change, so the copy stays and no install
+                    // script runs again (npm's diff calls such a node unchanged). The
+                    // freshly resolved node is still the one kept, because it carries
+                    // the source and digest the lockfile writes
+                    if (refresh && !reuse_fresh && same_unpacked_copy(on_disk, child_level_info)) {
+                        child_level_info.reuse_disk = true;
+
+                        // whatever the previous install nested under this copy is
+                        // still on the disk, and the walk has to see it: an empty
+                        // `node_modules` would resolve every one of those again and
+                        // download a second copy of something this package already has
+                        child_level_info.node_modules = on_disk.node_modules || {};
+
+                        Object.keys(child_level_info.node_modules).forEach(k => {
+                            child_level_info.node_modules[k].parent = child_level_info;
+                        });
+                    }
+
+                    // `--update` asked the registry for the edge, and it answered
+                    // with the version an *ancestor* already provides and serves to
+                    // this level (a hoisted copy, usually). Nothing has to be placed
+                    // here, and the bytes and scripts of the serving copy are not
+                    // touched a second time: `--update` without a package used to
+                    // download every hoisted dependency again even when its version
+                    // did not move
+                    if (refresh && !reuse_fresh) {
+                        const serving = find_provided_node(dname, level_info.parent);
+
+                        // `from_lock` describes a node the file remembers, not one
+                        // the disk has; a link or a member is not a registry copy to
+                        // place here either
+                        if (serving && serving.version === child_level_info.version &&
+                            !serving.workspace_package && !serving.local_package &&
+                            ((serving.new_module === true && serving.from_lock !== true) ||
+                                same_unpacked_copy(serving, child_level_info))) {
+                            delete level_info.node_modules[dname];
+                            child_level_info = undefined;
+                        }
+                    }
+                }
 
                 // check platform compatibility; skip optional deps that don't match
                 if (child_level_info && !check_platform_match(child_level_info)) {
@@ -2619,8 +2682,10 @@ function promote_nested_copies(rootsnap) {
             // only a copy this run resolved. A tree that is already on disk was shaped
             // by whoever wrote it, and re-shaping it here would have two installers
             // rewriting each other's answer; a bump is exactly the case where this run
-            // chose the newer version itself
-            if (copy.new_module !== true)
+            // chose the newer version itself. A refreshed copy that turned out to be
+            // the version already on the disk belongs to the disk as well: it stays
+            // exactly where the previous install put it
+            if (copy.new_module !== true || copy.reuse_disk === true)
                 return;
 
             // a copy for another platform was never installed: promoting it would put
@@ -2710,7 +2775,7 @@ function move_up_once(level_info, parent) {
     if (parent !== undefined && !parent_is_link)
         for (let k in level_info.node_modules) {
             const m = level_info.node_modules[k];
-            if (m.new_module && !m.workspace_package) { // don't move workspace packages
+            if (m.new_module && !m.reuse_disk && !m.workspace_package) { // don't move workspace packages, nor a copy `--update` found unchanged where it already was
                 const m1 = parent.node_modules[k];
                 if (m1 === undefined || m1.version === m.version) {
                     parent.node_modules[k] = m;
@@ -3381,24 +3446,68 @@ function shadow_probe(rootsnap, name, spec) {
 
 /**
  * @description does `--update` want this dependency resolved again? Without a
- *              package argument every dependency is refreshed, with one the named
- *              package is — and so is everything it needs, because the level that
- *              was refreshed says so
+ *              package argument every dependency is refreshed; with one, only the
+ *              edge that names it — at any depth — because npm's `update <pkg>`
+ *              refreshes that node, and re-resolves what it needs only where the
+ *              installed copy no longer satisfies the range
  */
-function should_update(name, level_info) {
+function should_update(name) {
     if (!ctx.update)
         return false;
-
-    if (level_info.updated)
-        return true;
 
     if (ctx.update.all)
         return true;
 
-    if (name === ctx.update.name)
+    const named = name === ctx.update.name;
+
+    if (named)
         ctx.update.matched = true;
 
-    return name === ctx.update.name;
+    return named;
+}
+
+/**
+ * @description is the copy already unpacked at this path the answer the registry
+ *              just gave? `--update` has to ask the registry, but when the version it
+ *              resolves is the one on the disk the bytes do not change: npm's diff
+ *              keeps such a node, so nothing is extracted and no install script runs
+ *              a second time. The hidden lockfile is the only record of where the
+ *              copy came from, and a republished tarball under the same version is a
+ *              change — the source and the digest decide when it knows them
+ */
+function same_unpacked_copy(on_disk, fresh) {
+    if (!on_disk || !fresh)
+        return false;
+
+    // only a copy an earlier run installed: a link, a member, a bundled copy or a
+    // node that came out of the lockfile describes a directory this run did not put
+    // there, and treating it as installed would claim a disk state that may not exist
+    if (on_disk.local_package || on_disk.workspace_package || on_disk.in_bundle ||
+        on_disk.new_module === true)
+        return false;
+
+    if (on_disk.version !== fresh.version)
+        return false;
+
+    if (!fresh.dist || !fresh.dist.tarball)
+        return false;
+
+    const source = hidden_source(on_disk, on_disk.lock_path, on_disk.version);
+
+    if (!source)
+        return true;
+
+    if (source.resolved) {
+        const recorded = lockfile.apply_registry_replace(source.resolved, ctx.registry);
+
+        if (recorded !== fresh.dist.tarball)
+            return false;
+    }
+
+    if (source.integrity && fresh.dist.integrity && source.integrity !== fresh.dist.integrity)
+        return false;
+
+    return true;
 }
 
 /**
@@ -3428,7 +3537,7 @@ function generate_mv_paths(level_info, parent_p) {
             const lmod = level_info.node_modules[k];
             const bp = path.join(parent_p, 'node_modules');
 
-            if (lmod.new_module && !lmod.workspace_package && !lmod.local_package &&
+            if (lmod.new_module && !lmod.reuse_disk && !lmod.workspace_package && !lmod.local_package &&
                 !lmod.platform_mismatch && !omitted_by(lmod)) { // don't generate download paths for workspace/local packages, nor for a package this platform cannot run, nor for one `omit` leaves out
                 const mv = k + '@' + lmod.version;
 
@@ -4812,6 +4921,13 @@ function hidden_tree_entries(lock, work) {
  */
 function plan_lock_install(lock, opts) {
     const o = opts || {};
+
+    // the table is shared with the resolve pass, and this plan only owns the tasks it
+    // is about to write: without this, `download_module` — which walks the whole
+    // table — unpacked every package the resolve pass had just unpacked a second
+    // time. `converge_with_lockfile` said "N already in place" and then fetched all
+    // N again, because the resolve pass's tasks were still sitting there
+    Object.keys(mv_paths).forEach(k => delete mv_paths[k]);
     const packages = lockfile.to_path_map(lock);
     const root = process.cwd();
     const git_entries = [];

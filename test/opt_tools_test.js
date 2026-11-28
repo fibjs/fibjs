@@ -4532,6 +4532,11 @@ describe('opt_tools install lifecycle', function () {
         var port = 0;
         var fixtureDir = '';
         var registry = {};   // name -> version -> { tarball, integrity, shasum, manifest }
+        var tarball_hits = {};   // 'name@version' -> how many times it was downloaded
+
+        function resetHits() {
+            tarball_hits = {};
+        }
 
         /**
          * @description a package packed the way npm packs one: `package/…` at the
@@ -4541,11 +4546,22 @@ describe('opt_tools install lifecycle', function () {
             var dir = path.join(fixtureDir, name + '-' + version);
             var pkgDir = path.join(dir, 'package');
 
-            var manifest = Object.assign({ name: name, version: version }, extra || {});
+            extra = extra || {};
+
+            // `files` writes members next to the manifest without becoming a
+            // package.json field (a lifecycle script needs something to run)
+            var files = extra.files;
+            var manifest = Object.assign({ name: name, version: version }, extra);
+
+            delete manifest.files;
 
             fs.mkdirSync(pkgDir, { recursive: true });
             fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify(manifest));
             fs.writeFileSync(path.join(pkgDir, 'index.js'), 'module.exports = ' + JSON.stringify(version) + ';\n');
+
+            Object.keys(files || {}).forEach(function (f) {
+                fs.writeFileSync(path.join(pkgDir, f), files[f]);
+            });
 
             var file = name + '-' + version + '.tgz';
 
@@ -4587,6 +4603,32 @@ describe('opt_tools install lifecycle', function () {
                 '1.0.1': pack('day2-extra', '1.0.1'),
             };
 
+            // a package whose install script leaves a marker: `--update` must not
+            // run it again when the version it resolves is the one already there
+            registry['day2-script'] = {
+                '1.0.0': pack('day2-script', '1.0.0', {
+                    scripts: { install: 'fibjs mark' },
+                    files: { 'mark.js': "require('fs').writeFileSync('ran.log', '1');\n" },
+                }),
+            };
+
+            // every script of the non-root lifecycle: npm runs
+            // preinstall/install/postinstall for a dependency, and `prepare` only
+            // for links (a workspace member or a `file:` package)
+            registry['day2-lifecycle'] = {
+                '1.0.0': pack('day2-lifecycle', '1.0.0', {
+                    scripts: {
+                        preinstall: 'fibjs mark',
+                        prepare: 'fibjs mark',
+                        install: 'fibjs mark',
+                        postinstall: 'fibjs mark',
+                    },
+                    files: {
+                        'mark.js': "require('fs').writeFileSync('ran-' + process.env.npm_lifecycle_event + '.log', '1');\n",
+                    },
+                }),
+            };
+
             // two packages that require each other: refreshing every edge of the
             // walk has to reuse what the run itself resolved, or the pair nests a
             // new level for ever
@@ -4626,6 +4668,7 @@ describe('opt_tools install lifecycle', function () {
                     var version = tb[2].slice(name.length + 1);
 
                     if (registry[name] && registry[name][version]) {
+                        tarball_hits[name + '@' + version] = (tarball_hits[name + '@' + version] || 0) + 1;
                         r.response.write(registry[name][version].tarball);
                         return;
                     }
@@ -4816,18 +4859,140 @@ describe('opt_tools install lifecycle', function () {
         });
 
         it('--update <pkg> refreshes that package only', function () {
-            var targetDir = makeProject({ 'day2-pkg': '1.0.0', 'day2-extra': '1.0.0' });
+            // the named package is declared *first*: a refresh used to mark the
+            // whole level, so every dependency after it in the object was resolved
+            // again and re-downloaded. Declaring it last hid that, and the order is
+            // whatever package.json happens to have
+            var targetDir = makeProject({ 'day2-extra': '1.0.0', 'day2-pkg': '1.0.0' });
 
             assert.equal(runDay2(targetDir).status, 0);
 
-            writePkgjson(targetDir, { 'day2-pkg': '^1.0.0', 'day2-extra': '^1.0.0' });
+            writePkgjson(targetDir, { 'day2-extra': '^1.0.0', 'day2-pkg': '^1.0.0' });
             assert.equal(runDay2(targetDir).status, 0);
+
+            resetHits();
 
             var res = runDay2(targetDir, ['--install', '--update', 'day2-extra']);
 
             assert.equal(res.status, 0, diag(targetDir, res));
             assert.equal(locked(targetDir, 'day2-extra'), '1.0.1', 'the named package is refreshed');
             assert.equal(locked(targetDir, 'day2-pkg'), '1.0.0', 'the others are left where they are');
+            assert.deepEqual(Object.keys(tarball_hits), ['day2-extra@1.0.1'],
+                'only the named package is downloaded: ' + JSON.stringify(tarball_hits));
+        });
+
+        it('downloads each tarball once per install', function () {
+            var targetDir = makeProject({ 'day2-pkg': '^1.0.0' });
+
+            resetHits();
+
+            var res = runDay2(targetDir);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.deepEqual(tarball_hits, {
+                'day2-pkg@1.0.1': 1,
+                'day2-dep@1.0.1': 1,
+            }, 'the resolve pass and the lockfile convergence must not fetch the same ' +
+                'tarball twice: ' + JSON.stringify(tarball_hits));
+        });
+
+        it('--update (all) downloads only the versions that moved', function () {
+            var targetDir = makeProject({ 'day2-pkg': '1.0.0', 'day2-extra': '1.0.0' });
+
+            assert.equal(runDay2(targetDir).status, 0);
+            assert.equal(locked(targetDir, 'day2-dep'), '1.0.1', 'the dependency is installed by the first run');
+
+            writePkgjson(targetDir, { 'day2-pkg': '^1.0.0', 'day2-extra': '^1.0.0' });
+
+            resetHits();
+
+            var res = runDay2(targetDir, ['--install', '--update']);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.deepEqual(tarball_hits, {
+                'day2-pkg@1.0.1': 1,
+                'day2-extra@1.0.1': 1,
+            }, 'a dependency whose version did not move must not be fetched again: ' +
+                JSON.stringify(tarball_hits));
+            assert.equal(locked(targetDir, 'day2-dep'), '1.0.1', 'and it stays where it was');
+        });
+
+        it('downloads nothing when the tree already matches the lockfile', function () {
+            var targetDir = makeProject({ 'day2-pkg': '^1.0.0' });
+
+            assert.equal(runDay2(targetDir).status, 0);
+
+            resetHits();
+
+            var res = runDay2(targetDir);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.deepEqual(tarball_hits, {},
+                'the lock-first install keeps what is on disk: ' + JSON.stringify(tarball_hits));
+        });
+
+        it('--update keeps an unpacked copy when the version does not move', function () {
+            var targetDir = makeProject({ 'day2-script': '1.0.0' });
+
+            assert.equal(runDay2(targetDir).status, 0);
+
+            var marker = path.join(targetDir, 'node_modules', 'day2-script', 'ran.log');
+
+            assert.ok(fs.existsSync(marker), 'the install script ran on the first install' + diag(targetDir, {}));
+            fs.unlinkSync(marker);
+
+            resetHits();
+
+            var res = runDay2(targetDir, ['--install', '--update', 'day2-script']);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.ok(!fs.existsSync(marker),
+                'the version did not move, so the install script must not run again' + diag(targetDir, res));
+            assert.equal(tarball_hits['day2-script@1.0.0'], undefined,
+                'and the tarball must not be fetched again: ' + JSON.stringify(tarball_hits));
+        });
+
+        it('runs a dependency preinstall, and not its prepare', function () {
+            var targetDir = makeProject({ 'day2-lifecycle': '1.0.0' });
+
+            var res = runDay2(targetDir);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+
+            var dir = path.join(targetDir, 'node_modules', 'day2-lifecycle');
+
+            ['preinstall', 'install', 'postinstall'].forEach(function (event) {
+                assert.ok(fs.existsSync(path.join(dir, 'ran-' + event + '.log')),
+                    'npm runs ' + event + ' for a dependency: ' + listDir(dir) + diag(targetDir, res));
+            });
+
+            assert.ok(!fs.existsSync(path.join(dir, 'ran-prepare.log')),
+                'prepare is not a dependency lifecycle: ' + listDir(dir));
+        });
+
+        it('runs prepare for a workspace member', function () {
+            var targetDir = makeTargetDir();
+
+            fs.writeFileSync(path.join(targetDir, 'package.json'), JSON.stringify({
+                name: 'ws-prepare', version: '1.0.0', private: true,
+                workspaces: ['packages/*'],
+            }, null, 2));
+
+            var member = path.join(targetDir, 'packages', 'member');
+
+            fs.mkdirSync(member, { recursive: true });
+            fs.writeFileSync(path.join(member, 'package.json'), JSON.stringify({
+                name: 'ws-prepare-member', version: '1.0.0',
+                scripts: { prepare: 'fibjs mark' },
+            }, null, 2));
+            fs.writeFileSync(path.join(member, 'mark.js'),
+                "require('fs').writeFileSync('ran-prepare.log', '1');\n");
+
+            var res = runDay2(targetDir);
+
+            assert.equal(res.status, 0, diag(targetDir, res));
+            assert.ok(fs.existsSync(path.join(member, 'ran-prepare.log')),
+                'npm builds a member link before install: ' + listDir(member) + diag(targetDir, res));
         });
 
         it('says so when --update names something that is not a dependency', function () {
