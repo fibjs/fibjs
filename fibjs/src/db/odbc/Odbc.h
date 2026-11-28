@@ -33,10 +33,14 @@ result_t odbc_getTableInfo(void* conn, exlib::string tableName, obj_ptr<NArray>&
 result_t odbc_set_autocommit(void* conn, bool on);
 
 // ODBC Statement: engine escape callbacks (each engine has different SQL
-// literal rules)
+// literal rules). The optional callbacks keep the generic form when null:
+// booleans are 1/0 and dates go through the string escape.
 struct OdbcEscape {
     exlib::string (*string)(exlib::string);
     exlib::string (*binary)(Buffer*);
+    exlib::string (*boolean)(bool) = NULL;
+    // Milliseconds since the epoch: Variant keeps its date_t private.
+    exlib::string (*date)(double) = NULL;
 };
 
 // Create an ODBC prepared statement (v1: SQLPrepare + client-side escaped

@@ -65,6 +65,15 @@ if (process.env.FIBJS_TEST_DM) {
     };
 }
 
+// KingbaseES (KODBC 驱动) - 通过 FIBJS_TEST_KINGBASE 环境变量控制
+// 连接格式: kingbase://user:password@host:54321/test
+if (process.env.FIBJS_TEST_KINGBASE) {
+    sql_server.kingbase = {
+        desc: '[kingbase] KingbaseES (KODBC) sql db universal test',
+        conn_str: process.env.FIBJS_TEST_KINGBASE,
+    };
+}
+
 describe("db", () => {
     function _test(type, conn_str) {
         var conn;
@@ -74,6 +83,7 @@ describe("db", () => {
             switch (type) {
                 case 'psql':
                 case 'psql_kb':
+                case 'kingbase':
                     conn.execute(`SELECT 'CREATE DATABASE ${DBNAME}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DBNAME}')`)
                     break;
                 case 'mssql':
@@ -209,7 +219,7 @@ describe("db", () => {
                 conn.execute('create table test(t0 INT IDENTITY(1,1) PRIMARY KEY, t1 int, t2 varchar(128), t3 VARBINARY(100), t4 datetime);');
                 conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 VARBINARY(100) NULL, t4 datetime NULL);');
             } else {
-                if (conn.type == 'psql') {
+                if (conn.type == 'psql' || conn.type == 'kingbase') {
                     conn.execute('create table test(t0 SERIAL PRIMARY KEY, t1 int, t2 varchar(128), t3 BYTEA, t4 timestamp);');
                     conn.execute('create table test_null(t1 int NULL, t2 varchar(128) NULL, t3 BYTEA NULL, t4 timestamp NULL);');
                 }
@@ -671,7 +681,7 @@ describe("db", () => {
                     conn.execute('create table test_big(id INT IDENTITY PRIMARY KEY, v int)');
                 else if (conn.type == 'dm')
                     conn.execute('create table test_big(id INT IDENTITY(1,1) PRIMARY KEY, v int)');
-                else if (conn.type == 'psql')
+                else if (conn.type == 'psql' || conn.type == 'kingbase')
                     conn.execute('create table test_big(id SERIAL PRIMARY KEY, v int)');
                 else if (conn.type == 'SQLite')
                     conn.execute('create table test_big(id INTEGER PRIMARY KEY AUTOINCREMENT, v int)');
@@ -1293,6 +1303,7 @@ describe("db", () => {
                 break;
             case 'psql':
             case 'psql_kb':
+            case 'kingbase':
                 it("PSQL auth failure exposes connection summaries", () => {
                     // A wrong password is not enough: Homebrew PostgreSQL uses
                     // trust auth for local connections, so every password is
@@ -2248,6 +2259,9 @@ describe("db", () => {
     // DM rejects some characters in user names; the password still carries
     // the sequences that matter.
     var CRED_USER_DM = 'fibjs_enc_u';
+    // KODBC hashes the user name in upper case when it authenticates with
+    // md5, so a lower-case probe user never authenticates on that path.
+    var CRED_USER_KB = 'FIBJS_ENC_KB';
 
     function credUrl(conn_str, user, secret) {
         var u = new URL(conn_str);
@@ -2296,13 +2310,21 @@ describe("db", () => {
                     try { admin.execute(`DROP USER "${user}"`); } catch (e) { }
                 };
 
+            case 'kingbase':
+                try { admin.execute(`DROP USER IF EXISTS "${user}"`); } catch (e) { }
+                admin.execute(`CREATE USER "${user}" PASSWORD '${CRED_PASS}'`);
+                return () => {
+                    try { admin.execute(`DROP USER IF EXISTS "${user}"`); } catch (e) { }
+                };
+
             default:
                 throw new Error(`credential encoding probe: unsupported backend '${type}'`);
         }
     }
 
     function _test_credential_encoding(type, conn_str) {
-        var user = type == 'dm' ? CRED_USER_DM : CRED_USER;
+        var user = type == 'dm' ? CRED_USER_DM
+            : type == 'kingbase' ? CRED_USER_KB : CRED_USER;
         var admin = null;
         var drop = null;
 
@@ -2363,7 +2385,7 @@ describe("db", () => {
             });
         });
 
-        if (type == 'psql' || type == 'psql_kb') {
+        if (type == 'psql' || type == 'psql_kb' || type == 'kingbase') {
             // psqlODBC keeps the braces in Uid / Database / Servername and its
             // connection-string grammar has no other escape for ';', so the
             // runtime rejects the value instead of authenticating with a

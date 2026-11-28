@@ -39,7 +39,7 @@
  Obtained from:
  - `db.open(connString)` — the engine is selected by the protocol prefix;
  - `db.openSQLite(...)`, `db.openMySQL(...)`, `db.openPSQL(...)`, `db.openMSSQL(...)`,
-   `db.openDM(...)` and `db.openOdbc(...)` — one engine each;
+   `db.openDM(...)`, `db.openKingbase(...)` and `db.openOdbc(...)` — one engine each;
  - `db.promises` or the `...Async` aliases — promise-based forms of the same calls.
 
  Example 1 — a round trip through the shared connection API:

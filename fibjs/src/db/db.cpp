@@ -12,6 +12,7 @@
 #include "sql/mysql.h"
 #include "sql/mssql.h"
 #include "sql/dm.h"
+#include "sql/kingbase.h"
 #include "odbc/Odbc.h"
 
 namespace fibjs {
@@ -37,6 +38,9 @@ result_t db_base::open(exlib::string connString, obj_ptr<DbConnection_base>& ret
 
     if (!qstrcmp(connString.c_str(), "dm:", 3))
         return openDM(connString, retVal, std::move(ac));
+
+    if (!qstrcmp(connString.c_str(), "kingbase:", 9))
+        return openKingbase(connString, retVal, std::move(ac));
 
     return result_t::make(CALL_E_INVALID_DATA).with_type_name(errtype::kTypeError).with_code("ERR_INVALID_ARG_VALUE").with_format("db.open: unknown protocol in connection string '%s'.", connString.c_str()).with_result(result_t::invalid_arg());
 }

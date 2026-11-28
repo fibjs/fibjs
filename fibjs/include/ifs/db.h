@@ -32,6 +32,7 @@ public:
     static result_t openOdbc(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac);
     static result_t openMSSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac);
     static result_t openDM(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac);
+    static result_t openKingbase(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac);
     static result_t openPSQL(exlib::string connString, obj_ptr<DbConnection_base>& retVal, AsyncHandle ac);
     static result_t openLevelDB(exlib::string connString, obj_ptr<LevelDB_base>& retVal, AsyncHandle ac);
     static result_t openRedis(exlib::string connString, obj_ptr<Redis_base>& retVal, AsyncHandle ac);
@@ -54,6 +55,7 @@ public:
     static void s_static_openOdbc(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openMSSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openDM(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void s_static_openKingbase(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openPSQL(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openLevelDB(const v8::FunctionCallbackInfo<v8::Value>& args);
     static void s_static_openRedis(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -65,6 +67,7 @@ public:
     ASYNC_STATICVALUE2(db_base, openOdbc, exlib::string, obj_ptr<DbConnection_base>);
     ASYNC_STATICVALUE2(db_base, openMSSQL, exlib::string, obj_ptr<DbConnection_base>);
     ASYNC_STATICVALUE2(db_base, openDM, exlib::string, obj_ptr<DbConnection_base>);
+    ASYNC_STATICVALUE2(db_base, openKingbase, exlib::string, obj_ptr<DbConnection_base>);
     ASYNC_STATICVALUE2(db_base, openPSQL, exlib::string, obj_ptr<DbConnection_base>);
     ASYNC_STATICVALUE2(db_base, openLevelDB, exlib::string, obj_ptr<LevelDB_base>);
     ASYNC_STATICVALUE2(db_base, openRedis, exlib::string, obj_ptr<Redis_base>);
@@ -87,6 +90,7 @@ inline ClassInfo& db_base::class_info()
         { "openOdbc", s_static_openOdbc, true, ClassData::ASYNC_ASYNC },
         { "openMSSQL", s_static_openMSSQL, true, ClassData::ASYNC_ASYNC },
         { "openDM", s_static_openDM, true, ClassData::ASYNC_ASYNC },
+        { "openKingbase", s_static_openKingbase, true, ClassData::ASYNC_ASYNC },
         { "openPSQL", s_static_openPSQL, true, ClassData::ASYNC_ASYNC },
         { "openLevelDB", s_static_openLevelDB, true, ClassData::ASYNC_ASYNC },
         { "openRedis", s_static_openRedis, true, ClassData::ASYNC_ASYNC }
@@ -207,6 +211,24 @@ inline void db_base::s_static_openDM(const v8::FunctionCallbackInfo<v8::Value>& 
         hr = acb_openDM(v0, cb, args);
     else
         hr = ac_openDM(v0, vr);
+
+    ASYNC_METHOD_RETURN();
+}
+
+inline void db_base::s_static_openKingbase(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    obj_ptr<DbConnection_base> vr;
+
+    ASYNC_METHOD_ENTER("db.openKingbase");
+
+    METHOD_OVER_NAMED(1, 1, "connString");
+
+    ARG_NAMED(exlib::string, 0, "connString");
+
+    if (!cb.IsEmpty())
+        hr = acb_openKingbase(v0, cb, args);
+    else
+        hr = ac_openKingbase(v0, vr);
 
     ASYNC_METHOD_RETURN();
 }

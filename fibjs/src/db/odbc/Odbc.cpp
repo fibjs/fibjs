@@ -785,7 +785,11 @@ static void odbcFormatValue(exlib::string& str, Variant& v,
         break;
 
     case Variant::VT_Boolean:
-        str.append(v.boolVal() ? "1" : "0", 1);
+        if (esc.boolean) {
+            exlib::string s = esc.boolean(v.boolVal());
+            str.append(s);
+        } else
+            str.append(v.boolVal() ? "1" : "0", 1);
         break;
 
     case Variant::VT_Integer:
@@ -796,6 +800,17 @@ static void odbcFormatValue(exlib::string& str, Variant& v,
         str.append(s);
         break;
     }
+
+    case Variant::VT_Date:
+        if (esc.date) {
+            exlib::string s = esc.date(v.dateValue());
+            str.append(s);
+        } else {
+            exlib::string s;
+            v.toString(s);
+            str.append(esc.string(s));
+        }
+        break;
 
     case Variant::VT_Object: {
         object_base* obj = v.object();

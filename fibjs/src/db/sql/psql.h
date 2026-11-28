@@ -11,11 +11,15 @@
 #include "utf8.h"
 
 #include "../odbc/Odbc.h"
+#include "pg_escape.h"
 
 namespace fibjs {
 
-class psql : public db_tmpl<Odbc_tmpl, psql> {
+class psql : public db_tmpl<Odbc_tmpl, psql>, public pg_escape {
 public:
+    using pg_escape::escape_binary;
+    using pg_escape::escape_date;
+
     ~psql()
     {
         if (m_conn)
@@ -28,7 +32,8 @@ public:
         exlib::string sql, obj_ptr<Statement_base>& retVal)
     {
         // psql strings use SQL standard escaping (' → ''); binaries use \x hex
-        static const OdbcEscape esc = { Odbc::escape_string, escape_binary };
+        static const OdbcEscape esc = { Odbc::escape_string, escape_binary,
+            escape_bool, escape_date_value };
         return odbc_prepareStmt(db->m_conn, &db->m_activeStmt, sql, esc, retVal);
     }
 
@@ -58,37 +63,6 @@ public:
     virtual result_t getTableInfo(exlib::string tableName, obj_ptr<NArray>& retVal, AsyncHandle ac)
     {
         return odbc_getTableInfo(m_conn, tableName, retVal, std::move(ac));
-    }
-
-public:
-    static exlib::string escape_binary(Buffer* bin)
-    {
-        exlib::string retVal;
-        exlib::string s;
-
-        bin->hex(s);
-
-        retVal.append("\'\\x", 3);
-        retVal.append(s);
-        retVal.append("\'::BYTEA", 8);
-
-        return retVal;
-    }
-
-    static exlib::string escape_date(v8::Local<v8::Value>& v)
-    {
-        exlib::string retVal;
-        exlib::string s;
-
-        retVal.append("TIMESTAMP \'", 11);
-
-        date_t d = v;
-        d.sqlString(s);
-        retVal.append(s);
-
-        retVal.append("\'", 1);
-
-        return retVal;
     }
 };
 

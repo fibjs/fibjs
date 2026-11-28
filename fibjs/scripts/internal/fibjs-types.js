@@ -7496,7 +7496,7 @@ declare class Class_DOMTokenList extends Class_object {
  *  Obtained from:
  *  - \`db.open(connString)\` — the engine is selected by the protocol prefix;
  *  - \`db.openSQLite(...)\`, \`db.openMySQL(...)\`, \`db.openPSQL(...)\`, \`db.openMSSQL(...)\`,
- *    \`db.openDM(...)\` and \`db.openOdbc(...)\` — one engine each;
+ *    \`db.openDM(...)\`, \`db.openKingbase(...)\` and \`db.openOdbc(...)\` — one engine each;
  *  - \`db.promises\` or the \`...Async\` aliases — promise-based forms of the same calls.
  *
  *  Example 1 — a round trip through the shared connection API:
@@ -91410,15 +91410,15 @@ declare module 'crypto_constants' {
 /// <reference path="../interface/Redis.d.ts" />
 /**
  * @description The db module opens and manages database connections: it is the single entry
- *  point for the SQL engines (SQLite, MySQL, PostgreSQL, MSSQL, DaMeng and generic ODBC)
- *  plus the Redis and LevelDB key-value stores
+ *  point for the SQL engines (SQLite, MySQL, PostgreSQL, MSSQL, DaMeng, KingbaseES and
+ *  generic ODBC) plus the Redis and LevelDB key-value stores
  *
  *  Main capabilities:
  *
  *  - **Generic SQL entry**: \`open\` dispatches on the protocol prefix of the connection
  *    string and returns the engine-specific connection object;
  *  - **Per-engine SQL entries**: \`openSQLite\`, \`openMySQL\`, \`openPSQL\`, \`openMSSQL\`,
- *    \`openDM\` and \`openOdbc\`;
+ *    \`openDM\`, \`openKingbase\` and \`openOdbc\`;
  *  - **Key-value stores**: \`openRedis\` (Redis server) and \`openLevelDB\` (embedded
  *    directory database);
  *  - **Shared connection API**: every SQL connection derives from DbConnection and offers
@@ -91428,11 +91428,11 @@ declare module 'crypto_constants' {
  *  Concepts:
  *
  *  - **Connection strings**: \`proto://user:password@host:port/database\`. \`open\` accepts
- *    the prefixes \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\` and \`dm:\`; a string
- *    without a known prefix fails with error number 20004. SQLite takes a file path and
- *    creates the file when it is missing; the server engines take host, port and database
- *    name from the URL. \`redis://\` and \`leveldb:\` are not accepted by \`open\` and have
- *    dedicated methods.
+ *    the prefixes \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\`, \`dm:\` and \`kingbase:\`;
+ *    a string without a known prefix fails with error number 20004. SQLite takes a file
+ *    path and creates the file when it is missing; the server engines take host, port and
+ *    database name from the URL. \`redis://\` and \`leveldb:\` are not accepted by \`open\` and
+ *    have dedicated methods.
  *  - **Quoting and parameters**: SQL text uses \`?\` placeholders. \`execute(sql, ...args)\`
  *    and \`format\` substitute escaped values into the string (\`format\` returns the SQL
  *    without running it), while \`prepare\` returns a Statement whose engine binds the
@@ -91545,13 +91545,13 @@ declare module 'db' {
      * @description Opens an SQL database; dispatches to the engine selected by the protocol
      *      prefix of connString
      *
-     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\` and \`dm:\`. The
-     *      returned object is the engine-specific subclass of DbConnection (SQLite, MySQL or
-     *      the ODBC-based mssql/psql/dm/odbc object); only the shared DbConnection API is
-     *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
-     *      are rejected here: call openRedis / openLevelDB instead. A string without a known
-     *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with ERR_INVALID_STATE.
+     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\`, \`dm:\` and
+     *      \`kingbase:\`. The returned object is the engine-specific subclass of DbConnection
+     *      (SQLite, MySQL or the ODBC-based mssql/psql/dm/kingbase/odbc object); only the
+     *      shared DbConnection API is guaranteed, use \`type\` to branch on the engine.
+     *      \`redis://\` and \`leveldb:\` strings are rejected here: call openRedis / openLevelDB
+     *      instead. A string without a known prefix fails with error number 20004; a failed
+     *      connection reports the driver error with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -91576,13 +91576,13 @@ declare module 'db' {
      * @description Opens an SQL database; dispatches to the engine selected by the protocol
      *      prefix of connString
      *
-     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\` and \`dm:\`. The
-     *      returned object is the engine-specific subclass of DbConnection (SQLite, MySQL or
-     *      the ODBC-based mssql/psql/dm/odbc object); only the shared DbConnection API is
-     *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
-     *      are rejected here: call openRedis / openLevelDB instead. A string without a known
-     *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with ERR_INVALID_STATE.
+     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\`, \`dm:\` and
+     *      \`kingbase:\`. The returned object is the engine-specific subclass of DbConnection
+     *      (SQLite, MySQL or the ODBC-based mssql/psql/dm/kingbase/odbc object); only the
+     *      shared DbConnection API is guaranteed, use \`type\` to branch on the engine.
+     *      \`redis://\` and \`leveldb:\` strings are rejected here: call openRedis / openLevelDB
+     *      instead. A string without a known prefix fails with error number 20004; a failed
+     *      connection reports the driver error with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -91605,13 +91605,13 @@ declare module 'db' {
      * @description Opens an SQL database; dispatches to the engine selected by the protocol
      *      prefix of connString
      *
-     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\` and \`dm:\`. The
-     *      returned object is the engine-specific subclass of DbConnection (SQLite, MySQL or
-     *      the ODBC-based mssql/psql/dm/odbc object); only the shared DbConnection API is
-     *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
-     *      are rejected here: call openRedis / openLevelDB instead. A string without a known
-     *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with ERR_INVALID_STATE.
+     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\`, \`dm:\` and
+     *      \`kingbase:\`. The returned object is the engine-specific subclass of DbConnection
+     *      (SQLite, MySQL or the ODBC-based mssql/psql/dm/kingbase/odbc object); only the
+     *      shared DbConnection API is guaranteed, use \`type\` to branch on the engine.
+     *      \`redis://\` and \`leveldb:\` strings are rejected here: call openRedis / openLevelDB
+     *      instead. A string without a known prefix fails with error number 20004; a failed
+     *      connection reports the driver error with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -91995,6 +91995,80 @@ declare module 'db' {
     function openDMAsync(connString: string): Promise<Class_DbConnectionPromise>;
 
     /**
+     * @description Opens a KingbaseES database
+     *
+     *      Only \`kingbase://\` strings are accepted; the port defaults to 54321 and the
+     *      connection is carried by the KingbaseES ODBC driver (KODBC). Install the driver
+     *      first: on posix keep \`kdbodbcw.so\` and its \`libkci.so\` where unixODBC can load them
+     *      (or select the file with \`?Driver=/path/to/kdbodbcw.so\`); on Windows the registered
+     *      "KingbaseES ... ODBC Driver" names of the common releases are tried. Use the KODBC
+     *      package that matches the server version: a V8 driver does not speak the SCRAM
+     *      authentication of V9 (the server must allow md5) and cannot read the V9 catalog for
+     *      table metadata. V8 servers require KODBC (psqlODBC cannot speak their protocol),
+     *      while V9 servers in PostgreSQL mode can also be opened through openPSQL. The SQL
+     *      dialect is the PostgreSQL one (quoted text, BYTEA hex for buffers, true/false
+     *      booleans) and getTableInfo uses the ODBC catalog API. Append \`?Driver=<name-or-path>\`
+     *      to choose another driver. The returned object reports type \`"kingbase"\`; \`insertId\`
+     *      is not provided. A failed connection reports the driver diagnostics with the
+     *      SQLSTATE in \`code\`.
+     *
+     *      @param connString the database description, such as: kingbase://user:pass@host:54321/db
+     *      @return returns the database connection object
+     *
+     */
+    function openKingbase(connString: string): Class_DbConnection;
+
+    function openKingbase(connString: string, callback: (err: Error | undefined | null, retVal: Class_DbConnection)=>any): void;
+
+    /**
+     * @description Opens a KingbaseES database
+     *
+     *      Only \`kingbase://\` strings are accepted; the port defaults to 54321 and the
+     *      connection is carried by the KingbaseES ODBC driver (KODBC). Install the driver
+     *      first: on posix keep \`kdbodbcw.so\` and its \`libkci.so\` where unixODBC can load them
+     *      (or select the file with \`?Driver=/path/to/kdbodbcw.so\`); on Windows the registered
+     *      "KingbaseES ... ODBC Driver" names of the common releases are tried. Use the KODBC
+     *      package that matches the server version: a V8 driver does not speak the SCRAM
+     *      authentication of V9 (the server must allow md5) and cannot read the V9 catalog for
+     *      table metadata. V8 servers require KODBC (psqlODBC cannot speak their protocol),
+     *      while V9 servers in PostgreSQL mode can also be opened through openPSQL. The SQL
+     *      dialect is the PostgreSQL one (quoted text, BYTEA hex for buffers, true/false
+     *      booleans) and getTableInfo uses the ODBC catalog API. Append \`?Driver=<name-or-path>\`
+     *      to choose another driver. The returned object reports type \`"kingbase"\`; \`insertId\`
+     *      is not provided. A failed connection reports the driver diagnostics with the
+     *      SQLSTATE in \`code\`.
+     *
+     *      @param connString the database description, such as: kingbase://user:pass@host:54321/db
+     *      @return returns the database connection object
+     *
+     */
+    function openKingbaseSync(connString: string): Class_DbConnection;
+
+    /**
+     * @description Opens a KingbaseES database
+     *
+     *      Only \`kingbase://\` strings are accepted; the port defaults to 54321 and the
+     *      connection is carried by the KingbaseES ODBC driver (KODBC). Install the driver
+     *      first: on posix keep \`kdbodbcw.so\` and its \`libkci.so\` where unixODBC can load them
+     *      (or select the file with \`?Driver=/path/to/kdbodbcw.so\`); on Windows the registered
+     *      "KingbaseES ... ODBC Driver" names of the common releases are tried. Use the KODBC
+     *      package that matches the server version: a V8 driver does not speak the SCRAM
+     *      authentication of V9 (the server must allow md5) and cannot read the V9 catalog for
+     *      table metadata. V8 servers require KODBC (psqlODBC cannot speak their protocol),
+     *      while V9 servers in PostgreSQL mode can also be opened through openPSQL. The SQL
+     *      dialect is the PostgreSQL one (quoted text, BYTEA hex for buffers, true/false
+     *      booleans) and getTableInfo uses the ODBC catalog API. Append \`?Driver=<name-or-path>\`
+     *      to choose another driver. The returned object reports type \`"kingbase"\`; \`insertId\`
+     *      is not provided. A failed connection reports the driver diagnostics with the
+     *      SQLSTATE in \`code\`.
+     *
+     *      @param connString the database description, such as: kingbase://user:pass@host:54321/db
+     *      @return returns the database connection object
+     *
+     */
+    function openKingbaseAsync(connString: string): Promise<Class_DbConnectionPromise>;
+
+    /**
      * @description Opens a PostgresSQL database
      *
      *      Only \`psql://\` strings are accepted; the port defaults to 5432 and the driver to
@@ -92152,13 +92226,13 @@ declare module 'db/promises' {
      * @description Opens an SQL database; dispatches to the engine selected by the protocol
      *      prefix of connString
      *
-     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\` and \`dm:\`. The
-     *      returned object is the engine-specific subclass of DbConnection (SQLite, MySQL or
-     *      the ODBC-based mssql/psql/dm/odbc object); only the shared DbConnection API is
-     *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
-     *      are rejected here: call openRedis / openLevelDB instead. A string without a known
-     *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with ERR_INVALID_STATE.
+     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\`, \`dm:\` and
+     *      \`kingbase:\`. The returned object is the engine-specific subclass of DbConnection
+     *      (SQLite, MySQL or the ODBC-based mssql/psql/dm/kingbase/odbc object); only the
+     *      shared DbConnection API is guaranteed, use \`type\` to branch on the engine.
+     *      \`redis://\` and \`leveldb:\` strings are rejected here: call openRedis / openLevelDB
+     *      instead. A string without a known prefix fails with error number 20004; a failed
+     *      connection reports the driver error with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -92181,13 +92255,13 @@ declare module 'db/promises' {
      * @description Opens an SQL database; dispatches to the engine selected by the protocol
      *      prefix of connString
      *
-     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\` and \`dm:\`. The
-     *      returned object is the engine-specific subclass of DbConnection (SQLite, MySQL or
-     *      the ODBC-based mssql/psql/dm/odbc object); only the shared DbConnection API is
-     *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
-     *      are rejected here: call openRedis / openLevelDB instead. A string without a known
-     *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with ERR_INVALID_STATE.
+     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\`, \`dm:\` and
+     *      \`kingbase:\`. The returned object is the engine-specific subclass of DbConnection
+     *      (SQLite, MySQL or the ODBC-based mssql/psql/dm/kingbase/odbc object); only the
+     *      shared DbConnection API is guaranteed, use \`type\` to branch on the engine.
+     *      \`redis://\` and \`leveldb:\` strings are rejected here: call openRedis / openLevelDB
+     *      instead. A string without a known prefix fails with error number 20004; a failed
+     *      connection reports the driver error with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -92210,13 +92284,13 @@ declare module 'db/promises' {
      * @description Opens an SQL database; dispatches to the engine selected by the protocol
      *      prefix of connString
      *
-     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\` and \`dm:\`. The
-     *      returned object is the engine-specific subclass of DbConnection (SQLite, MySQL or
-     *      the ODBC-based mssql/psql/dm/odbc object); only the shared DbConnection API is
-     *      guaranteed, use \`type\` to branch on the engine. \`redis://\` and \`leveldb:\` strings
-     *      are rejected here: call openRedis / openLevelDB instead. A string without a known
-     *      prefix fails with error number 20004; a failed connection reports the driver error
-     *      with ERR_INVALID_STATE.
+     *      Accepted prefixes: \`sqlite:\`, \`mysql:\`, \`odbc:\`, \`mssql:\`, \`psql:\`, \`dm:\` and
+     *      \`kingbase:\`. The returned object is the engine-specific subclass of DbConnection
+     *      (SQLite, MySQL or the ODBC-based mssql/psql/dm/kingbase/odbc object); only the
+     *      shared DbConnection API is guaranteed, use \`type\` to branch on the engine.
+     *      \`redis://\` and \`leveldb:\` strings are rejected here: call openRedis / openLevelDB
+     *      instead. A string without a known prefix fails with error number 20004; a failed
+     *      connection reports the driver error with ERR_INVALID_STATE.
      *
      *      Example — select the engine with the protocol prefix:
      *      \`\`\`JavaScript
@@ -92588,6 +92662,78 @@ declare module 'db/promises' {
      *
      */
     function openDMAsync(connString: string): Promise<Class_DbConnectionPromise>;
+
+    /**
+     * @description Opens a KingbaseES database
+     *
+     *      Only \`kingbase://\` strings are accepted; the port defaults to 54321 and the
+     *      connection is carried by the KingbaseES ODBC driver (KODBC). Install the driver
+     *      first: on posix keep \`kdbodbcw.so\` and its \`libkci.so\` where unixODBC can load them
+     *      (or select the file with \`?Driver=/path/to/kdbodbcw.so\`); on Windows the registered
+     *      "KingbaseES ... ODBC Driver" names of the common releases are tried. Use the KODBC
+     *      package that matches the server version: a V8 driver does not speak the SCRAM
+     *      authentication of V9 (the server must allow md5) and cannot read the V9 catalog for
+     *      table metadata. V8 servers require KODBC (psqlODBC cannot speak their protocol),
+     *      while V9 servers in PostgreSQL mode can also be opened through openPSQL. The SQL
+     *      dialect is the PostgreSQL one (quoted text, BYTEA hex for buffers, true/false
+     *      booleans) and getTableInfo uses the ODBC catalog API. Append \`?Driver=<name-or-path>\`
+     *      to choose another driver. The returned object reports type \`"kingbase"\`; \`insertId\`
+     *      is not provided. A failed connection reports the driver diagnostics with the
+     *      SQLSTATE in \`code\`.
+     *
+     *      @param connString the database description, such as: kingbase://user:pass@host:54321/db
+     *      @return returns the database connection object
+     *
+     */
+    function openKingbase(connString: string): Promise<Class_DbConnectionPromise>;
+
+    /**
+     * @description Opens a KingbaseES database
+     *
+     *      Only \`kingbase://\` strings are accepted; the port defaults to 54321 and the
+     *      connection is carried by the KingbaseES ODBC driver (KODBC). Install the driver
+     *      first: on posix keep \`kdbodbcw.so\` and its \`libkci.so\` where unixODBC can load them
+     *      (or select the file with \`?Driver=/path/to/kdbodbcw.so\`); on Windows the registered
+     *      "KingbaseES ... ODBC Driver" names of the common releases are tried. Use the KODBC
+     *      package that matches the server version: a V8 driver does not speak the SCRAM
+     *      authentication of V9 (the server must allow md5) and cannot read the V9 catalog for
+     *      table metadata. V8 servers require KODBC (psqlODBC cannot speak their protocol),
+     *      while V9 servers in PostgreSQL mode can also be opened through openPSQL. The SQL
+     *      dialect is the PostgreSQL one (quoted text, BYTEA hex for buffers, true/false
+     *      booleans) and getTableInfo uses the ODBC catalog API. Append \`?Driver=<name-or-path>\`
+     *      to choose another driver. The returned object reports type \`"kingbase"\`; \`insertId\`
+     *      is not provided. A failed connection reports the driver diagnostics with the
+     *      SQLSTATE in \`code\`.
+     *
+     *      @param connString the database description, such as: kingbase://user:pass@host:54321/db
+     *      @return returns the database connection object
+     *
+     */
+    function openKingbaseSync(connString: string): Class_DbConnection;
+
+    /**
+     * @description Opens a KingbaseES database
+     *
+     *      Only \`kingbase://\` strings are accepted; the port defaults to 54321 and the
+     *      connection is carried by the KingbaseES ODBC driver (KODBC). Install the driver
+     *      first: on posix keep \`kdbodbcw.so\` and its \`libkci.so\` where unixODBC can load them
+     *      (or select the file with \`?Driver=/path/to/kdbodbcw.so\`); on Windows the registered
+     *      "KingbaseES ... ODBC Driver" names of the common releases are tried. Use the KODBC
+     *      package that matches the server version: a V8 driver does not speak the SCRAM
+     *      authentication of V9 (the server must allow md5) and cannot read the V9 catalog for
+     *      table metadata. V8 servers require KODBC (psqlODBC cannot speak their protocol),
+     *      while V9 servers in PostgreSQL mode can also be opened through openPSQL. The SQL
+     *      dialect is the PostgreSQL one (quoted text, BYTEA hex for buffers, true/false
+     *      booleans) and getTableInfo uses the ODBC catalog API. Append \`?Driver=<name-or-path>\`
+     *      to choose another driver. The returned object reports type \`"kingbase"\`; \`insertId\`
+     *      is not provided. A failed connection reports the driver diagnostics with the
+     *      SQLSTATE in \`code\`.
+     *
+     *      @param connString the database description, such as: kingbase://user:pass@host:54321/db
+     *      @return returns the database connection object
+     *
+     */
+    function openKingbaseAsync(connString: string): Promise<Class_DbConnectionPromise>;
 
     /**
      * @description Opens a PostgresSQL database
